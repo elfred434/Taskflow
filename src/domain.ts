@@ -37,3 +37,15 @@ const currentTask: Task = {
     projectId : "proj-001",
     status: "todo",
 };
+
+type ApiResponse<T>={
+    data: T;
+}
+
+const currentTaskResponse: ApiResponse<Task> = {
+    data: currentTask,
+}
+
+const currentProjectResponse: ApiResponse<Project> ={
+    data: currentProject
+}
