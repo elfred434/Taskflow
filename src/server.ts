@@ -2,6 +2,10 @@ import express from "express";
 import { currentTaskResponse, tasksResponse } from "./domain.js";
 
 const app = express();
+app.use((request, _response, next) =>{
+    console.log(request.method, request.path);
+    next()
+});
 
 app.get("/tasks/current", (_request, response) => {
     response.json(currentTaskResponse)
