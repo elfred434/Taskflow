@@ -1,9 +1,9 @@
-import express, { response } from "express";
+import express from "express";
 import { currentTaskResponse } from "./domain.js";
 
 const app = express();
 
-app.get("/task/current", (_request, response) => {
+app.get("/tasks/current", (_request, response) => {
     response.json(currentTaskResponse)
 })
 
