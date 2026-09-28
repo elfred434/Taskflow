@@ -45,7 +45,7 @@ type ApiResponse<T>={
     data: T;
 }
 
-export const taskResponse: ApiResponse<Task[]> = {
+export const tasksResponse: ApiResponse<Task[]> = {
     data: tasks,
 }
 export const currentTaskResponse: ApiResponse<Task> = {
