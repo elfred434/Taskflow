@@ -42,10 +42,10 @@ type ApiResponse<T>={
     data: T;
 }
 
-const currentTaskResponse: ApiResponse<Task> = {
+export const currentTaskResponse: ApiResponse<Task> = {
     data: currentTask,
 }
 
 const currentProjectResponse: ApiResponse<Project> ={
-    data: currentProject
+    data: currentProject,
 }
