@@ -38,7 +38,14 @@ const currentTask: Task = {
     status: "todo",
 };
 
-export const tasks: Task[] = [currentTask]
+const secondTask: Task = {
+    id: "task-002",
+    title: "Tester la routes des tâches",
+    projectId: "proj-001",
+    status: "in-progress",
+};
+
+export const tasks: Task[] = [currentTask, secondTask]
 
 
 type ApiResponse<T>={
