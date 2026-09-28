@@ -21,3 +21,19 @@ const currentProject: Project = {
     name: "Apprendre Tanstack",
     ownerId: "user-001",
 };
+
+type TaskStatus = "todo" | "in-progress" | "done"
+
+type Task = {
+    id: string;
+    title: string;
+    projectId: string;
+    status: TaskStatus;
+}
+
+const currentTask: Task = {
+    id: "task-001",
+    title: "Les Unions",
+    projectId : "proj-001",
+    status: "todo",
+};
