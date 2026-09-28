@@ -9,3 +9,15 @@ const currentUser: User = {
     name: "Elfred",
     email: "elfred434@gmail.com",
 };
+
+interface Project {
+    id: string;
+    name: string;
+    owerId: string;
+}
+
+const currentProject: Project = {
+    id: "proj-001",
+    name: "Apprendre Tanstack",
+    owerId: "user-001",
+};
