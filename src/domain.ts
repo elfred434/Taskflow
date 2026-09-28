@@ -18,7 +18,7 @@ interface Project {
 
 const currentProject: Project = {
     id: "proj-001",
-    name: "Apprendre Tanstack",
+    name: "Apprendre TypeScript",
     ownerId: "user-001",
 };
 
@@ -59,6 +59,6 @@ export const currentTaskResponse: ApiResponse<Task> = {
     data: currentTask,
 }
 
-const currentProjectResponse: ApiResponse<Project> ={
+export const currentProjectResponse: ApiResponse<Project> ={
     data: currentProject,
 }
