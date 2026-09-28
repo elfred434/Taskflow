@@ -13,11 +13,11 @@ const currentUser: User = {
 interface Project {
     id: string;
     name: string;
-    owerId: string;
+    ownerId: string;
 }
 
 const currentProject: Project = {
     id: "proj-001",
     name: "Apprendre Tanstack",
-    owerId: "user-001",
+    ownerId: "user-001",
 };
