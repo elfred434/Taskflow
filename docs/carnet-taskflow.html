@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Carnet d’apprentissage — TaskFlow</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #65728a;
+      --line: #e1e7f0;
+      --paper: #ffffff;
+      --canvas: #f4f7fb;
+      --navy: #101a31;
+      --blue: #315cf5;
+      --blue-soft: #edf2ff;
+      --teal: #087f78;
+      --teal-soft: #e6f7f4;
+      --amber: #9a5b00;
+      --amber-soft: #fff4dd;
+      --code: #111a2d;
+      --radius: 18px;
+      --shadow: 0 12px 30px rgba(19, 35, 69, .07);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 15px/1.62 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--blue); }
+    button, input { font: inherit; }
+    .hero {
+      background: radial-gradient(circle at 84% 15%, #344d94 0, transparent 28%), var(--navy);
+      color: white;
+      padding: 34px 22px 30px;
+    }
+    .hero-inner, .layout { width: min(1180px, calc(100% - 36px)); margin: 0 auto; }
+    .eyebrow { color: #aab9e7; font-size: .78rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 9px 0 8px; font-size: clamp(2rem, 4.6vw, 3.3rem); line-height: 1.06; letter-spacing: -.045em; }
+    .hero p { max-width: 720px; margin: 0; color: #d2daf0; font-size: 1.03rem; }
+    .hero-meta { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 20px; }
+    .pill { display: inline-flex; align-items: center; border: 1px solid rgba(255,255,255,.19); border-radius: 99px; padding: 5px 11px; color: #eef2ff; font-size: .82rem; }
+    .layout { display: grid; grid-template-columns: 235px minmax(0, 1fr); gap: 22px; padding: 25px 0 60px; align-items: start; }
+    .sidebar { position: sticky; top: 16px; }
+    .side-card, .card, .section-card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .side-card { padding: 16px; }
+    .search-label { display: block; color: var(--muted); font-size: .78rem; font-weight: 750; margin-bottom: 7px; }
+    .search {
+      width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px 11px;
+      background: #fbfcff; color: var(--ink); outline: none;
+    }
+    .search:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(49,92,245,.12); }
+    .nav-title { margin: 20px 0 8px; color: var(--muted); font-size: .75rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .nav-list { display: grid; gap: 3px; }
+    .nav-list a { display: block; padding: 8px 9px; border-radius: 9px; color: #39465e; text-decoration: none; font-size: .9rem; }
+    .nav-list a:hover, .nav-list a:focus { background: var(--blue-soft); color: #2449d3; outline: none; }
+    .side-note { margin-top: 16px; padding: 11px; border-radius: 11px; background: var(--teal-soft); color: #125f5b; font-size: .82rem; }
+    main { min-width: 0; }
+    .section-card { padding: clamp(17px, 3vw, 27px); margin-bottom: 20px; }
+    .section-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 15px; }
+    .section-number { flex: 0 0 36px; height: 36px; display: grid; place-items: center; border-radius: 12px; background: var(--blue-soft); color: var(--blue); font-weight: 850; }
+    h2 { margin: 0; font-size: 1.45rem; letter-spacing: -.025em; line-height: 1.25; }
+    h3 { margin: 0; font-size: 1.08rem; line-height: 1.35; }
+    .section-sub { color: var(--muted); margin: 4px 0 0; }
+    .grid { display: grid; gap: 13px; }
+    .lesson { border: 1px solid var(--line); border-radius: 15px; padding: 17px; background: #fff; }
+    .lesson-top { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
+    .tag { white-space: nowrap; display: inline-flex; border-radius: 99px; padding: 3px 9px; font-size: .72rem; font-weight: 800; color: #2450d8; background: var(--blue-soft); }
+    .tag.green { color: var(--teal); background: var(--teal-soft); }
+    .why { color: #42516a; margin: 9px 0 12px; }
+    .label { margin: 12px 0 6px; color: #5e6c85; font-size: .72rem; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+    pre {
+      margin: 0; overflow: auto; padding: 14px 15px; border-radius: 12px;
+      background: var(--code); color: #eaf0ff; font: 13px/1.58 ui-monospace, SFMono-Regular, Consolas, monospace;
+      tab-size: 2;
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    p code, li code { background: #eef2f8; border-radius: 5px; padding: 1px 5px; color: #263654; font-size: .92em; }
+    .callout { margin-top: 12px; padding: 11px 13px; border-left: 3px solid var(--teal); background: var(--teal-soft); border-radius: 0 10px 10px 0; color: #185c58; }
+    .warn { border-left-color: #d6901c; background: var(--amber-soft); color: #704400; }
+    details { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+    summary { cursor: pointer; color: var(--blue); font-weight: 750; }
+    details p { margin: 9px 0 0; color: #46546c; }
+    .versions { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-top: 12px; }
+    .version { border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; background: #fbfcff; }
+    .version strong { display: block; }
+    .version span { color: var(--muted); font-size: .83rem; }
+    .simulator { margin-top: 14px; padding: 14px; border-radius: 13px; background: #f0f4ff; border: 1px solid #dce5ff; }
+    .simulator button {
+      border: 0; border-radius: 9px; padding: 9px 12px; cursor: pointer; color: white;
+      background: var(--blue); font-weight: 750;
+    }
+    .simulator button:hover { background: #244bd5; }
+    .sim-output { margin-top: 10px; min-height: 30px; white-space: pre-wrap; color: #31415f; font: 13px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .progress-line { height: 8px; border-radius: 99px; background: rgba(255,255,255,.18); margin-top: 18px; max-width: 450px; overflow: hidden; }
+    .progress-line span { display: block; width: 28%; height: 100%; background: #76d6cb; border-radius: inherit; }
+    .sources { font-size: .86rem; color: var(--muted); }
+    .footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 8px 18px 36px; }
+    .hidden { display: none !important; }
+    .empty-state { display: none; padding: 20px; text-align: center; color: var(--muted); border: 1px dashed #bbc6d8; border-radius: 13px; }
+
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .nav-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .nav-title { margin-top: 13px; }
+    }
+    @media (max-width: 520px) {
+      .hero { padding: 26px 0 24px; }
+      .hero-inner, .layout { width: min(100% - 24px, 1180px); }
+      .layout { padding-top: 13px; gap: 13px; }
+      .nav-list { grid-template-columns: 1fr; }
+      .versions { grid-template-columns: 1fr; }
+      .lesson-top { display: block; }
+      .lesson-top .tag { margin-top: 8px; }
+      pre { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Carnet vivant · apprentissage par le projet</div>
+      <h1>TaskFlow, brique par brique</h1>
+      <p>Les notions étudiées sont reliées à la même API. Utilise la recherche, ouvre les questions de rappel et simule une requête pour réviser activement.</p>
+      <div class="hero-meta">
+        <span class="pill">Semaine 1 · bases TypeScript terminées</span>
+        <span class="pill">Semaine 2 · Express en cours</span>
+        <span class="pill">Dernière mise à jour : middleware de journalisation</span>
+      </div>
+      <div class="progress-line" aria-label="Progression du programme"><span></span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="side-card">
+        <label class="search-label" for="search">Rechercher une notion</label>
+        <input id="search" class="search" type="search" placeholder="Ex. union, route, next()" autocomplete="off">
+        <div class="nav-title">Dans ce carnet</div>
+        <nav class="nav-list" aria-label="Navigation du carnet">
+          <a href="#repere">Repères du projet</a>
+          <a href="#types">Semaine 1 · TypeScript</a>
+          <a href="#http">Semaine 2 · HTTP et routes</a>
+          <a href="#middleware">Middleware</a>
+          <a href="#prochaines">À venir</a>
+        </nav>
+        <div class="side-note"><strong>Rituel :</strong> relis une question, réponds sans regarder, puis ouvre la réponse pour vérifier.</div>
+      </div>
+    </aside>
+
+    <main id="content">
+      <div class="empty-state" id="emptyState">Aucune notion ne correspond à cette recherche.</div>
+
+      <section class="section-card searchable" id="repere" data-search="repères versions installation Node TypeScript Express pnpm">
+        <div class="section-head">
+          <div class="section-number">↗</div>
+          <div>
+            <h2>Repères du projet</h2>
+            <p class="section-sub">TaskFlow est une API de gestion de projets et de tâches. Le code de travail est dans le dépôt GitHub public de l’apprenant.</p>
+          </div>
+        </div>
+        <div class="callout"><strong>À retenir :</strong> le navigateur fait une requête HTTP ; Node exécute le serveur ; Express associe une requête à une route ; TypeScript vérifie les types avant l’exécution.</div>
+        <div class="versions" aria-label="Versions retenues et observées">
+          <div class="version"><strong>Node.js</strong><span>24.18.0 sur la machine de l’apprenant ; ligne 24 LTS.</span></div>
+          <div class="version"><strong>pnpm</strong><span>12.6.0, version épinglée dans le projet.</span></div>
+          <div class="version"><strong>TypeScript</strong><span>7.0.2, compilateur installé en dépendance de développement.</span></div>
+          <div class="version"><strong>Express</strong><span>5.2.1 avec les types Express 5.0.6.</span></div>
+        </div>
+        <p class="sources">Les versions et conventions doivent être revérifiées avant d’ajouter un nouvel outil ou une nouvelle commande.</p>
+      </section>
+
+      <section class="section-card searchable" id="types" data-search="TypeScript types User type alias object string interface Project union TaskStatus generics ApiResponse arrays Task[] compile tsc">
+        <div class="section-head">
+          <div class="section-number">01</div>
+          <div>
+            <h2>Semaine 1 · fondations TypeScript</h2>
+            <p class="section-sub">Un type décrit les formes autorisées ; il ne crée pas à lui seul de données à l’exécution.</p>
+          </div>
+        </div>
+        <div class="grid">
+          <article class="lesson searchable" data-search="type User object type alias string valeurs currentUser point virgule virgule">
+            <div class="lesson-top"><h3>1. Alias d’objet : décrire un utilisateur</h3><span class="tag green">validé</span></div>
+            <p class="why"><strong>Pourquoi :</strong> TypeScript peut vérifier qu’un objet contient les propriétés attendues. <code>type User</code> décrit la forme ; <code>currentUser</code> contient une valeur réelle.</p>
+            <pre><code>type User = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+const currentUser: User = {
+  id: "user-001",
+  name: "Elfred",
+  email: "elfred434@gmail.com",
+};</code></pre>
+            <div class="callout"><strong>Ponctuation :</strong> dans la définition du type, les propriétés sont séparées par des points-virgules ; dans l’objet de valeurs, elles sont séparées par des virgules. Les textes ont des guillemets.</div>
+            <details><summary>Question de rappel</summary><p>Si <code>email</code> vaut le nombre <code>42</code>, le contrôle TypeScript doit signaler une incompatibilité : <code>email</code> attend un <code>string</code>.</p></details>
+          </article>
+
+          <article class="lesson searchable" data-search="interface Project ownerId object shape">
+            <div class="lesson-top"><h3>2. Interface : décrire un projet</h3><span class="tag green">validé</span></div>
+            <p class="why"><strong>Pourquoi :</strong> une interface décrit elle aussi une forme d’objet. Ici, <code>Project</code> est le contrat des données d’un projet ; <code>currentProject</code> est l’objet qui le respecte.</p>
+            <pre><code>interface Project {
+  id: string;
+  name: string;
+  ownerId: string;
+}
+
+const currentProject: Project = {
+  id: "proj-001",
+  name: "Apprendre Tanstack",
+  ownerId: "user-001",
+};</code></pre>
+            <details><summary>À retenir</summary><p>Pour ces formes d’objet simples, un alias <code>type</code> et une <code>interface</code> peuvent tous deux convenir. Il n’y a pas une règle absolue qui rendrait l’un toujours supérieur à l’autre.</p></details>
+          </article>
+
+          <article class="lesson searchable" data-search="union TaskStatus todo in-progress done barre choix status">
+            <div class="lesson-top"><h3>3. Union : limiter les statuts</h3><span class="tag green">validé</span></div>
+            <p class="why"><strong>Pourquoi :</strong> un <code>string</code> libre autoriserait les fautes de frappe. Une union de chaînes littérales limite la valeur à des choix connus ; <code>|</code> signifie « ou ».</p>
+            <pre><code>type TaskStatus = "todo" | "in-progress" | "done";
+
+type Task = {
+  id: string;
+  title: string;
+  projectId: string;
+  status: TaskStatus;
+};</code></pre>
+            <p>Une valeur <code>"finished"</code> n’est pas membre de cette union, donc le contrôle TypeScript la refuse dans le code typé.</p>
+            <div class="callout warn"><strong>Limite importante :</strong> le type ne valide pas automatiquement un JSON reçu sur HTTP. Les données externes devront être contrôlées à l’exécution avec Zod plus tard.</div>
+          </article>
+
+          <article class="lesson searchable" data-search="générique generics ApiResponse T Task Project data">
+            <div class="lesson-top"><h3>4. Générique : réutiliser une enveloppe</h3><span class="tag green">validé</span></div>
+            <p class="why"><strong>Pourquoi :</strong> le paramètre <code>T</code> est un emplacement réservé à un type. Le type choisi au moment de l’utilisation précise ce que contient <code>data</code>.</p>
+            <pre><code>type ApiResponse&lt;T&gt; = {
+  data: T;
+};
+
+// T devient Task
+const oneTask: ApiResponse&lt;Task&gt; = {
+  data: currentTask,
+};
+
+// T devient un tableau de Task
+const manyTasks: ApiResponse&lt;Task[]&gt; = {
+  data: tasks,
+};</code></pre>
+            <details><summary>Question de rappel</summary><p>Dans <code>ApiResponse&lt;Project&gt;</code>, <code>T</code> est remplacé par <code>Project</code> ; <code>data</code> doit donc avoir la forme d’un projet.</p></details>
+          </article>
+
+          <article class="lesson searchable" data-search="array tableau Task[] liste tasks currentTask">
+            <div class="lesson-top"><h3>5. Tableau : représenter une liste</h3><span class="tag green">validé</span></div>
+            <p class="why"><strong>Pourquoi :</strong> l’API doit pouvoir représenter plusieurs tâches. <code>Task[]</code> désigne un tableau dont chaque élément doit respecter <code>Task</code>.</p>
+            <pre><code>export const tasks: Task[] = [currentTask];
+
+export const tasksResponse: ApiResponse&lt;Task[]&gt; = {
+  data: tasks,
+};</code></pre>
+            <p>Le tableau contient une tâche pour l’instant ; on pourra en ajouter d’autres quand on construira les opérations d’écriture.</p>
+          </article>
+
+          <article class="lesson searchable" data-search="tsc compile noEmit typecheck runtime JavaScript Node dist">
+            <div class="lesson-top"><h3>6. Vérifier n’est pas exécuter</h3><span class="tag green">validé</span></div>
+            <p class="why"><code>pnpm exec tsc --noEmit</code> vérifie le projet sans générer de JavaScript. <code>pnpm exec tsc</code> compile selon <code>tsconfig.json</code> ; <code>node dist/server.js</code> exécute ensuite le JavaScript généré.</p>
+            <pre><code>pnpm exec tsc --noEmit  # contrôle seulement
+pnpm exec tsc           # génère dist/
+node dist/server.js     # lance le serveur</code></pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-card searchable" id="http" data-search="Semaine 2 HTTP Express URL route GET path response json ESM import export NodeNext">
+        <div class="section-head">
+          <div class="section-number">02</div>
+          <div>
+            <h2>Semaine 2 · Express et HTTP</h2>
+            <p class="section-sub">Un échange réel a été testé dans le navigateur : requête GET, route Express, réponse JSON.</p>
+          </div>
+        </div>
+        <div class="grid">
+          <article class="lesson searchable" data-search="ESM import export domain.js NodeNext type module">
+            <div class="lesson-top"><h3>7. Importer une valeur d’un autre fichier</h3><span class="tag green">validé</span></div>
+            <p class="why"><code>export</code> rend une valeur disponible hors du fichier ; <code>import</code> la réutilise. Avec ESM et NodeNext, l’import relatif indique l’extension JavaScript qui sera émise, même si le fichier source est <code>.ts</code>.</p>
+            <pre><code>// src/domain.ts
+export const tasksResponse = ...;
+
+// src/server.ts
+import { tasksResponse } from "./domain.js";</code></pre>
+            <p class="sources"><a href="https://www.typescriptlang.org/docs/handbook/modules/reference.html">Modules TypeScript · NodeNext</a> · <a href="https://nodejs.org/api/packages.html">Modules Node.js</a></p>
+          </article>
+
+          <article class="lesson searchable" data-search="Express routing GET tasks current URL path localhost port JSON response">
+            <div class="lesson-top"><h3>8. Une route associe méthode et chemin</h3><span class="tag green">validé</span></div>
+            <p class="why">Une route Express choisit un gestionnaire selon la méthode HTTP et le chemin. Dans <code>http://localhost:3000/tasks/current</code>, le chemin est <code>/tasks/current</code> ; le navigateur utilise GET.</p>
+            <pre><code>app.get("/tasks/current", (_request, response) =&gt; {
+  response.json(currentTaskResponse);
+});
+
+app.get("/tasks", (_request, response) =&gt; {
+  response.json(tasksResponse);
+});</code></pre>
+            <div class="simulator">
+              <strong>Simulation pédagogique — ne contacte pas le serveur</strong>
+              <p>Observe la forme de la réponse de <code>GET /tasks</code>.</p>
+              <button type="button" id="simulate">Simuler GET /tasks</button>
+              <div class="sim-output" id="simOutput" aria-live="polite">Clique sur le bouton pour afficher le JSON attendu.</div>
+            </div>
+            <details><summary>Question de rappel</summary><p>Pour <code>GET /tasks</code>, la méthode est <code>GET</code> et le chemin est <code>/tasks</code>. Le chemin n’inclut ni le protocole, ni l’hôte, ni le port.</p></details>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-card searchable" id="middleware" data-search="middleware app.use request method path next logger journalisation Express pipeline">
+        <div class="section-head">
+          <div class="section-number">03</div>
+          <div>
+            <h2>Middleware · journaliser les requêtes</h2>
+            <p class="section-sub">La machine de l’apprenant a affiché <code>GET /tasks</code> pendant le test.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="app.use next request response logger Express middleware">
+          <div class="lesson-top"><h3>Une étape avant la route</h3><span class="tag green">testé localement</span></div>
+          <p class="why">Un middleware peut inspecter une requête et laisser Express continuer. Il est placé avant les routes ; <code>next()</code> transmet le contrôle à la prochaine étape au lieu de terminer la réponse.</p>
+          <pre><code>app.use((request, _response, next) =&gt; {
+  console.log(request.method, request.path);
+  next();
+});</code></pre>
+          <p class="sources"><a href="https://expressjs.com/en/guide/using-middleware/">Guide Express sur les middlewares</a> · <a href="https://expressjs.com/en/api.html">API Express : req.method et req.path</a></p>
+          <details><summary>Question de rappel</summary><p>Que se passerait-il si ce middleware n’envoyait aucune réponse et n’appelait jamais <code>next()</code> ? La requête resterait en attente.</p></details>
+        </article>
+      </section>
+
+      <section class="section-card searchable" id="prochaines" data-search="prochaines étapes POST JSON body middleware express.json Zod Prisma">
+        <div class="section-head">
+          <div class="section-number">→</div>
+          <div>
+            <h2>Prochaines briques</h2>
+            <p class="section-sub">On ajoutera les notions au carnet au fur et à mesure qu’elles seront enseignées et vérifiées.</p>
+          </div>
+        </div>
+        <ul>
+          <li>Express : traiter un corps JSON et ajouter des tâches en mémoire.</li>
+          <li>Prisma : remplacer progressivement la liste en mémoire par une base de données.</li>
+          <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
+          <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
+        </ul>
+        <div class="callout warn"><strong>État Git :</strong> le dernier pull du dépôt public était au commit <code>f8212be</code>, qui ne contenait pas encore le middleware <code>app.use</code>. Le journal du terminal montre que la version locale a bien affiché <code>GET /tasks</code> ; il faudra pousser cette modification pour la retrouver dans le dépôt distant.</div>
+      </section>
+    </main>
+  </div>
+  <footer class="footer">TaskFlow · carnet pédagogique interactif · fichier autonome HTML + CSS + JavaScript, sans CDN ni dépendances externes.</footer>
+
+  <script>
+    const search = document.getElementById("search");
+    const searchableItems = [...document.querySelectorAll(".searchable")];
+    const emptyState = document.getElementById("emptyState");
+
+    search.addEventListener("input", () => {
+      const query = search.value.trim().toLocaleLowerCase("fr");
+      let visibleCount = 0;
+      for (const item of searchableItems) {
+        const matches = !query || item.textContent.toLocaleLowerCase("fr").includes(query) ||
+          (item.dataset.search || "").toLocaleLowerCase("fr").includes(query);
+        item.classList.toggle("hidden", !matches);
+        if (matches && item.matches("article.lesson")) visibleCount++;
+      }
+      emptyState.style.display = query && visibleCount === 0 ? "block" : "none";
+    });
+
+    document.getElementById("simulate").addEventListener("click", () => {
+      const sample = {
+        data: [
+          { id: "task-001", title: "Les Unions", projectId: "proj-001", status: "todo" }
+        ]
+      };
+      document.getElementById("simOutput").textContent = JSON.stringify(sample, null, 2);
+    });
+  </script>
+</body>
+</html>
