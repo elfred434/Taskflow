@@ -38,10 +38,16 @@ const currentTask: Task = {
     status: "todo",
 };
 
+export const tasks: Task[] = [currentTask]
+
+
 type ApiResponse<T>={
     data: T;
 }
 
+export const taskResponse: ApiResponse<Task[]> = {
+    data: tasks,
+}
 export const currentTaskResponse: ApiResponse<Task> = {
     data: currentTask,
 }

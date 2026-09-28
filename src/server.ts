@@ -1,5 +1,5 @@
 import express from "express";
-import { currentTaskResponse } from "./domain.js";
+import { currentTaskResponse, tasks } from "./domain.js";
 
 const app = express();
 
@@ -7,6 +7,9 @@ app.get("/tasks/current", (_request, response) => {
     response.json(currentTaskResponse)
 })
 
+app.get("/tasks", (_request, response) => {
+    response.json(tasks)
+})
 app.listen(3000, () => {
     console.log("TaskFlow écoute sur le port 3000")
 })
