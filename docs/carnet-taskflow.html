@@ -538,7 +538,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -Con
           </div>
         </div>
         <article class="lesson searchable" data-search="DELETE findIndex splice position index -1 suppression Array">
-          <div class="lesson-top"><h3>Trouver la position, puis retirer l’élément</h3><span class="tag amber">à pratiquer</span></div>
+          <div class="lesson-top"><h3>Trouver la position, puis retirer l’élément</h3><span class="tag green">testé</span></div>
           <p class="why"><strong>Pourquoi :</strong> <code>DELETE /tasks/task-002</code> indique au serveur quelle tâche supprimer. Pour la retirer du tableau, il faut d’abord trouver sa position.</p>
           <pre><code>app.delete("/tasks/:id", (request, response) =&gt; {
   const taskIndex = tasks.findIndex(
@@ -561,6 +561,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -Con
           </ul>
           <p>Le DELETE n’a pas besoin de corps JSON dans cet exercice : l’URL fournit l’identifiant. Après suppression de <code>task-002</code>, <code>GET /tasks</code> doit afficher la liste sans cette tâche.</p>
           <pre><code>Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Delete</code></pre>
+          <div class="callout"><strong>Test observé :</strong> la réponse du DELETE ne contient plus <code>task-002</code> ; la tentative de relire l’identifiant supprimé renvoie <code>404 Tâche introuvable</code>.</div>
           <details><summary>Question de rappel</summary><p>Pourquoi teste-t-on <code>taskIndex === -1</code> avant d’appeler <code>splice</code> ?</p></details>
           <p class="sources"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex">MDN : Array.prototype.findIndex()</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice">MDN : Array.prototype.splice()</a> · <a href="https://expressjs.com/en/guide/routing/">Express 5 : routing</a></p>
         </article>
@@ -575,12 +576,12 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -Con
           </div>
         </div>
         <ul>
-          <li>Express : tester la suppression et vérifier l’ensemble du CRUD en mémoire.</li>
+          <li>Express : opérations CRUD en mémoire testées ; prochaine étape, persister les tâches avec Prisma.</li>
           <li>Prisma : remplacer progressivement la liste en mémoire par une base de données.</li>
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
         </ul>
-        <div class="callout"><strong>État de TaskFlow :</strong> les routes <code>GET /tasks</code>, <code>GET /tasks/current</code>, <code>GET /tasks/:id</code> (avec réponse 404 si absent), <code>POST /tasks</code>, <code>PATCH /tasks/:id</code> et <code>GET /projects/current</code>, ainsi que le middleware JSON et le journal de requêtes, sont maintenant sur <code>main</code>.</div>
+        <div class="callout"><strong>État de TaskFlow :</strong> les routes <code>GET /tasks</code>, <code>GET /tasks/current</code>, <code>GET /tasks/:id</code> (avec réponse 404 si absent), <code>POST /tasks</code>, <code>PATCH /tasks/:id</code>, <code>DELETE /tasks/:id</code> et <code>GET /projects/current</code>, ainsi que le middleware JSON et le journal de requêtes, sont maintenant sur <code>main</code>.</div>
       </section>
     </main>
   </div>
