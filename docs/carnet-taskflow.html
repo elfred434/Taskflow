@@ -481,6 +481,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
             <li><code>response.status(404)</code> choisit le code HTTP ; <code>.json(...)</code> envoie aussi un message JSON.</li>
             <li><code>return</code> arrête le gestionnaire après la réponse d’erreur ; sinon le code pourrait continuer et tenter d’envoyer une deuxième réponse.</li>
           </ul>
+          <div class="callout warn"><strong>Pourquoi <code>return</code> est indispensable :</strong> le bloc <code>if</code> ne met pas fin à toute la fonction. Sans <code>return</code>, après avoir envoyé le JSON 404, JavaScript sort seulement des accolades du <code>if</code> puis continue à la ligne suivante, qui essaie d’envoyer aussi la réponse normale. Node refuse cette deuxième réponse et affiche <code>ERR_HTTP_HEADERS_SENT</code>. Le <code>return</code> fait quitter immédiatement le gestionnaire après le 404.</div>
           <div class="callout"><strong>Résultat attendu :</strong> <code>GET /tasks/id-inexistant</code> reçoit le statut <code>404</code> et le JSON <code>{"error":"Tâche introuvable"}</code>. Pour une tâche existante, la réponse reste <code>{"data":{...}}</code>.</div>
           <details><summary>Question de rappel</summary><p>Pourquoi met-on <code>return</code> après l’envoi de la réponse 404 ? Pour sortir du gestionnaire et ne pas tenter ensuite d’envoyer aussi la réponse normale.</p></details>
           <p class="sources"><a href="https://expressjs.com/en/5x/api/response/#res.status">Documentation officielle Express 5 : res.status()</a></p>
