@@ -30,5 +30,10 @@
     "@prisma/client": "^7.10.0",
     "dotenv": "^18.0.4",
     "express": "5.2.1"
+  },
+  
+  "scripts": {
+    "postinstall": "prisma generate"
   }
+  
 }
