@@ -131,7 +131,7 @@
       <div class="hero-meta">
         <span class="pill">Semaine 1 · bases TypeScript terminées</span>
         <span class="pill">Semaine 2 · Express en cours</span>
-        <span class="pill">Dernière mise à jour : création par POST en mémoire</span>
+        <span class="pill">Dernière mise à jour : paramètres de route</span>
       </div>
       <div class="progress-line" aria-label="Progression du programme"><span></span></div>
     </div>
@@ -150,6 +150,7 @@
           <a href="#middleware">Middleware</a>
           <a href="#corps-json">Corps JSON</a>
           <a href="#post-create">POST · créer une tâche</a>
+          <a href="#route-parametres">Paramètre d’URL</a>
           <a href="#prochaines">À venir</a>
         </nav>
         <div class="side-note"><strong>Rituel :</strong> relis une question, réponds sans regarder, puis ouvre la réponse pour vérifier.</div>
@@ -405,6 +406,24 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
         </article>
       </section>
 
+      <section class="section-card searchable" id="route-parametres" data-search="paramètre de route params request.params id URL task tasks Express chemin dynamique">
+        <div class="section-head">
+          <div class="section-number">06</div>
+          <div>
+            <h2>Un paramètre d’URL pour viser une tâche</h2>
+            <p class="section-sub">Passer l’identifiant d’une tâche dans le chemin de la requête.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="route parameter :id request.params URL Express string valeur capturée">
+          <div class="lesson-top"><h3>Le placeholder <code>:id</code></h3><span class="tag amber">notion en cours</span></div>
+          <p class="why"><strong>Pourquoi :</strong> <code>GET /tasks</code> vise toute la liste. Pour viser une tâche particulière dans TaskFlow, le chemin peut contenir son identifiant. Le symbole <code>:</code> indique à Express qu’un morceau du chemin doit être capturé comme paramètre.</p>
+          <div class="callout"><strong>Exemple TaskFlow :</strong><br>Modèle de route : <code>/tasks/:id</code><br>Requête reçue : <code>/tasks/task-003</code><br>Valeur capturée : <code>request.params.id</code> vaut la chaîne <code>"task-003"</code></div>
+          <p><code>:id</code> est le nom donné au paramètre dans le modèle de route. <code>request.params.id</code> est la valeur réelle capturée dans l’URL ; ici, c’est un texte, car les identifiants <code>Task</code> sont des chaînes.</p>
+          <details><summary>Question de rappel</summary><p>Avec le modèle <code>/tasks/:id</code>, quelle valeur Express place dans <code>request.params.id</code> quand l’URL reçue est <code>/tasks/task-002</code> ?</p></details>
+          <p class="sources"><a href="https://expressjs.com/en/guide/routing/">Documentation officielle Express 5 : paramètres de route</a></p>
+        </article>
+      </section>
+
       <section class="section-card searchable" id="prochaines" data-search="prochaines étapes POST JSON body middleware express.json Zod Prisma">
         <div class="section-head">
           <div class="section-number">→</div>
@@ -414,7 +433,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
           </div>
         </div>
         <ul>
-          <li>Express : identifier une tâche précise pour la modifier ou la supprimer en mémoire.</li>
+          <li>Express : modifier puis supprimer une tâche précise en mémoire avec son identifiant.</li>
           <li>Prisma : remplacer progressivement la liste en mémoire par une base de données.</li>
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
