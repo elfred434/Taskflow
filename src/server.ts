@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
-import { currentTaskResponse, tasksResponse, currentProjectResponse, tasks } from "./domain.js";
+// import { currentTaskResponse, tasksResponse, currentProjectResponse, tasks } from "./domain.js";
+import {prisma} from "./db.js"
 
 
 const app = express();
@@ -11,67 +12,73 @@ app.use((request, _response, next) =>{
     next()
 });
 
-app.get("/tasks/current", (_request, response) => {
-    response.json(currentTaskResponse)
+app.get("/tasks", async (_request, response) =>{
+    const tasks = await prisma.task.findMany();
+    response.json({data: tasks})
 })
 
-/*trouvez une tâche*/
-app.get("/tasks/:id", (request, response) => {
-   const foundTask = tasks.find(
-    (oneTask) => oneTask.id === request.params.id
-    );
-    if (!foundTask) {
-        response.status(404).json({error: "Tâches introuvables"})
-        return;
-    }
-    response.json({data: foundTask});
-})
+/* Ancien modèle sans prisma */
+// app.get("/tasks/current", (_request, response) => {
+//     response.json(currentTaskResponse)
+// })
 
-/* modifier une tâche sans renvoyez toutes ses proprietés */
+// /*trouvez une tâche*/
+// app.get("/tasks/:id", (request, response) => {
+//    const foundTask = tasks.find(
+//     (oneTask) => oneTask.id === request.params.id
+//     );
+//     if (!foundTask) {
+//         response.status(404).json({error: "Tâches introuvables"})
+//         return;
+//     }
+//     response.json({data: foundTask});
+// })
 
-app.patch("/tasks/:id", (request, response) => {
-    const foundTask = tasks.find(
-        (oneTask) => oneTask.id === request.params.id
-    );
+// /* modifier une tâche sans renvoyez toutes ses proprietés */
 
-    if (!foundTask) {
-        response.status(404).json({error: "Tâche introuvable"})
-        return;
-    }
+// app.patch("/tasks/:id", (request, response) => {
+//     const foundTask = tasks.find(
+//         (oneTask) => oneTask.id === request.params.id
+//     );
+
+//     if (!foundTask) {
+//         response.status(404).json({error: "Tâche introuvable"})
+//         return;
+//     }
     
-    foundTask.status = request.body.status
+//     foundTask.status = request.body.status
     
-    response.json({data: foundTask});
-})
+//     response.json({data: foundTask});
+// })
 
-app.delete("/tasks/:id", (request, response) => {
-    const taskIndex = tasks.findIndex(
-        (oneTask) => oneTask.id === request.params.id
-    );
+// app.delete("/tasks/:id", (request, response) => {
+//     const taskIndex = tasks.findIndex(
+//         (oneTask) => oneTask.id === request.params.id
+//     );
 
-    if (taskIndex === -1){
-        response.status(404).json({error: "Tâche introuvable"})
-        return;
-    }
+//     if (taskIndex === -1){
+//         response.status(404).json({error: "Tâche introuvable"})
+//         return;
+//     }
 
-    tasks.splice(taskIndex, 1)
+//     tasks.splice(taskIndex, 1)
 
-    response.json(tasksResponse)
-})
+//     response.json(tasksResponse)
+// })
 
 
-app.get("/tasks", (_request, response) => {
-    response.json(tasksResponse)
-})
-/*créé une tâche*/
-app.post("/tasks", (request, response) => {
-    tasks.push(request.body);
-    response.json(tasksResponse)
-})
+// app.get("/tasks", (_request, response) => {
+//     response.json(tasksResponse)
+// })
+// /*créé une tâche*/
+// app.post("/tasks", (request, response) => {
+//     tasks.push(request.body);
+//     response.json(tasksResponse)
+// })
 
-app.get("/projects/current", (_request, response) => {
-    response.json(currentProjectResponse)
-})
-app.listen(3000, () => {
-    console.log("TaskFlow écoute sur le port 3000")
-})
+// app.get("/projects/current", (_request, response) => {
+//     response.json(currentProjectResponse)
+// })
+// app.listen(3000, () => {
+//     console.log("TaskFlow écoute sur le port 3000")
+// })
