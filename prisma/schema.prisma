@@ -16,6 +16,7 @@ model User {
   id String @id @default(uuid())
   name String 
   email String @unique
+  passwwordHash String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -24,7 +25,8 @@ model Project {
   id String @id @default(uuid())
   name String
   ownerId String
-
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum TaskStatus {
@@ -36,6 +38,8 @@ model Task {
   id String @id @default(uuid())
   title String
   projectId String
-  status TaskStatus @default(todo)
+  status TaskStatus @default(todo)  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
