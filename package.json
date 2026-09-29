@@ -26,6 +26,9 @@
     "typescript": "7.0.2"
   },
   "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "dotenv": "^18.0.4",
     "express": "5.2.1"
   }
 }
