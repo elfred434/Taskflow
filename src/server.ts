@@ -1,5 +1,6 @@
 import express from "express";
-import { currentTaskResponse, tasksResponse, currentProjectResponse } from "./domain.js";
+import { currentTaskResponse, tasksResponse, currentProjectResponse, tasks } from "./domain.js";
+import { request } from "http";
 
 const app = express();
 app.use(express.json());
@@ -15,6 +16,10 @@ app.get("/tasks/current", (_request, response) => {
 
 app.get("/tasks", (_request, response) => {
     response.json(tasksResponse)
+})
+app.post("/tasks", (request, response) => {
+    tasks.push(request.body);
+    response.json(tasks)
 })
 
 app.get("/projects/current", (_request, response) => {
