@@ -387,16 +387,18 @@ app.use(express.json());</code></pre>
   tasks.push(request.body);
   response.json(tasksResponse);
 });</code></pre>
+          <div class="callout"><strong>Garder la même forme de réponse :</strong> <code>tasks</code> est le tableau brut ; <code>tasksResponse</code> est l’objet enveloppe <code>{ data: tasks }</code>. Utiliser <code>response.json(tasksResponse)</code> dans POST conserve la même forme que GET. Dans le gestionnaire Express, <code>request</code> est déjà fourni comme paramètre : aucun <code>import { request } from "http"</code> n’est nécessaire.</div>
           <div class="callout warn"><strong>Limite de cette première version :</strong> <code>request.body</code> vient d’un client et n’est pas validé automatiquement par TypeScript. Pour l’exercice, envoie un objet qui respecte bien la forme <code>Task</code>. Plus tard, Zod vérifiera les données reçues. Le tableau est en mémoire : le redémarrage du serveur le réinitialise.</div>
           <p>Pour notre premier test, le corps sera un objet de forme <code>Task</code> avec <code>id</code>, <code>title</code>, <code>projectId</code> et <code>status</code>. Nous fournirons l’<code>id</code> manuellement pour l’exercice ; sa création automatique viendra plus tard.</p>
-          <p>Dans PowerShell, on peut envoyer ce JSON avec <code>Invoke-RestMethod</code> :</p>
-          <pre><code>$taskJson = '{"id":"task-003","title":"Créer ma première tâche par POST","projectId":"proj-001","status":"todo"}'
+          <p>Pour tester la route, PowerShell doit envoyer un corps JSON. Si un accent ressort sous la forme <code>�</code> jusque dans la réponse vue au navigateur, il a été remplacé avant d’être stocké : ce n’est pas seulement l’affichage du terminal. Selon la version de PowerShell, envoyer directement une chaîne peut mal encoder les caractères Unicode. On peut convertir explicitement le texte en octets UTF-8 et déclarer cet encodage :</p>
+          <pre><code>$taskJson = '{"id":"task-003","title":"Créer via POST","projectId":"proj-001","status":"todo"}'
+$utf8Body = [System.Text.Encoding]::UTF8.GetBytes($taskJson)
 Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
   -Method Post `
-  -ContentType "application/json" `
-  -Body $taskJson</code></pre>
-          <p><code>$taskJson</code> garde le texte JSON ; <code>-Method Post</code> choisit la route POST ; <code>-ContentType</code> indique que le corps est du JSON ; <code>-Body</code> envoie ce contenu au serveur. Cette commande est prévue pour Windows PowerShell.</p>
-          <p class="sources"><a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-restmethod?view=powershell-7.5">Documentation Microsoft : Invoke-RestMethod</a></p>
+  -ContentType "application/json; charset=utf-8" `
+  -Body $utf8Body</code></pre>
+          <p><code>GetBytes</code> transforme la chaîne en octets UTF-8 ; <code>charset=utf-8</code> indique à Express comment les décoder. Si l’accent est déjà remplacé quand tu affiches <code>$taskJson</code> avant l’envoi, le problème se situe plus tôt.</p>
+          <p class="sources"><a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-restmethod?view=powershell-7.5">Documentation Microsoft : Invoke-RestMethod</a> · <a href="https://github.com/PowerShell/PowerShell/issues/17872">Exemple du problème Unicode dans Invoke-RestMethod</a></p>
           <details><summary>Question de rappel : pourquoi GET et POST peuvent-ils partager /tasks ?</summary><p>Parce que la méthode HTTP fait partie de l’identification de la route, avec le chemin.</p></details>
           <details><summary>Question de rappel : que fait <code>tasks.push(request.body)</code> ?</summary><p><code>push</code> ajoute l’objet reçu à la fin du tableau en mémoire. Cela ne valide pas l’objet et ne l’écrit pas sur le disque.</p></details>
           <p class="sources"><a href="https://expressjs.com/en/guide/routing/">Documentation officielle Express 5 : routing</a></p>
