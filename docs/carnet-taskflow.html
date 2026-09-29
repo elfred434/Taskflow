@@ -131,7 +131,7 @@
       <div class="hero-meta">
         <span class="pill">Semaine 1 · bases TypeScript terminées</span>
         <span class="pill">Semaine 2 · Express en cours</span>
-        <span class="pill">Dernière mise à jour : supprimer une tâche avec DELETE</span>
+        <span class="pill">Dernière mise à jour : préparer le stockage durable avec SQLite</span>
       </div>
       <div class="progress-line" aria-label="Progression du programme"><span></span></div>
     </div>
@@ -155,6 +155,7 @@
           <a href="#introuvable">Tâche introuvable</a>
           <a href="#patch-task">PATCH · modifier</a>
           <a href="#delete-task">DELETE · supprimer</a>
+          <a href="#prisma-stockage">Prisma · stockage durable</a>
           <a href="#prochaines">À venir</a>
         </nav>
         <div class="side-note"><strong>Rituel :</strong> relis une question, réponds sans regarder, puis ouvre la réponse pour vérifier.</div>
@@ -567,6 +568,24 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -Con
         </article>
       </section>
 
+      <section class="section-card searchable" id="prisma-stockage" data-search="Prisma SQLite stockage durable persistance mémoire RAM fichier base de données dev.db">
+        <div class="section-head">
+          <div class="section-number">11</div>
+          <div>
+            <h2>Du tableau en mémoire à une base SQLite</h2>
+            <p class="section-sub">Pourquoi TaskFlow va bientôt stocker ses tâches dans un fichier de base de données.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="SQLite database file RAM process restart persistence données durable">
+          <div class="lesson-top"><h3>Des données qui survivent au redémarrage</h3><span class="tag amber">choix retenu pour la suite</span></div>
+          <p class="why"><strong>Pourquoi :</strong> le tableau <code>tasks</code> vit dans la mémoire du processus Node.js. Quand le serveur s’arrête, cette mémoire disparaît et le tableau est recréé au prochain démarrage. Une base SQLite écrit les données dans un fichier local, par exemple <code>dev.db</code>, qui reste sur le disque.</p>
+          <div class="callout"><strong>Choix pédagogique :</strong> commencer avec SQLite, une vraie base relationnelle sous forme de fichier, évite d’installer et d’administrer un serveur de base de données. Comme TaskFlow est collaboratif, PostgreSQL pourra être évalué pour un déploiement plus ambitieux.</div>
+          <div class="callout"><strong>Choix de version :</strong> pour suivre le programme prévu — <code>schema.prisma</code>, Prisma Client typé et migrations — on utilisera délibérément le parcours Prisma ORM 7. Les docs Prisma présentent aussi le parcours Prisma 8, qui introduit une approche de contrats et un flux de migrations différent ; on pourra l’étudier plus tard, sans mélanger les deux.</div>
+          <details><summary>Question de rappel</summary><p>Après un redémarrage de Node.js, quelle donnée reste disponible : l’ajout dans le tableau <code>tasks</code>, ou une tâche déjà écrite dans le fichier SQLite ?</p></details>
+          <p class="sources"><a href="https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/sqlite">Guide officiel Prisma 7 : SQLite, schéma et migrations</a> · <a href="https://www.prisma.io/docs/orm/coming-from-prisma-orm-7">Documentation Prisma : évolution du flux vers Prisma 8</a></p>
+        </article>
+      </section>
+
       <section class="section-card searchable" id="prochaines" data-search="prochaines étapes POST JSON body middleware express.json Zod Prisma">
         <div class="section-head">
           <div class="section-number">→</div>
@@ -576,8 +595,8 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -Con
           </div>
         </div>
         <ul>
-          <li>Express : opérations CRUD en mémoire testées ; prochaine étape, persister les tâches avec Prisma.</li>
-          <li>Prisma : remplacer progressivement la liste en mémoire par une base de données.</li>
+          <li>Express : opérations CRUD en mémoire testées.</li>
+          <li>Prisma : remplacer progressivement la liste en mémoire par SQLite.</li>
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
         </ul>
