@@ -131,7 +131,7 @@
       <div class="hero-meta">
         <span class="pill">Semaine 1 · bases TypeScript terminées</span>
         <span class="pill">Semaine 2 · Express en cours</span>
-        <span class="pill">Dernière mise à jour : modifier une tâche avec PATCH</span>
+        <span class="pill">Dernière mise à jour : supprimer une tâche avec DELETE</span>
       </div>
       <div class="progress-line" aria-label="Progression du programme"><span></span></div>
     </div>
@@ -154,6 +154,7 @@
           <a href="#trouver-task">Chercher une tâche</a>
           <a href="#introuvable">Tâche introuvable</a>
           <a href="#patch-task">PATCH · modifier</a>
+          <a href="#delete-task">DELETE · supprimer</a>
           <a href="#prochaines">À venir</a>
         </nav>
         <div class="side-note"><strong>Rituel :</strong> relis une question, réponds sans regarder, puis ouvre la réponse pour vérifier.</div>
@@ -528,6 +529,43 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -Con
         </article>
       </section>
 
+      <section class="section-card searchable" id="delete-task" data-search="DELETE supprimer tâche findIndex splice tableau array mémoire request params id">
+        <div class="section-head">
+          <div class="section-number">10</div>
+          <div>
+            <h2>Supprimer une tâche avec DELETE</h2>
+            <p class="section-sub">Retirer de la liste la tâche désignée par son identifiant.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="DELETE findIndex splice position index -1 suppression Array">
+          <div class="lesson-top"><h3>Trouver la position, puis retirer l’élément</h3><span class="tag amber">à pratiquer</span></div>
+          <p class="why"><strong>Pourquoi :</strong> <code>DELETE /tasks/task-002</code> indique au serveur quelle tâche supprimer. Pour la retirer du tableau, il faut d’abord trouver sa position.</p>
+          <pre><code>app.delete("/tasks/:id", (request, response) =&gt; {
+  const taskIndex = tasks.findIndex(
+    (oneTask) =&gt; oneTask.id === request.params.id
+  );
+
+  if (taskIndex === -1) {
+    response.status(404).json({ error: "Tâche introuvable" });
+    return;
+  }
+
+  tasks.splice(taskIndex, 1);
+  response.json(tasksResponse);
+});</code></pre>
+          <ul>
+            <li><code>findIndex(...)</code> renvoie la position de l’élément trouvé : par exemple <code>0</code> pour le premier ; il renvoie <code>-1</code> s’il n’y a aucune correspondance.</li>
+            <li>On vérifie <code>-1</code> avant suppression. Sinon, <code>splice(-1, 1)</code> retirerait par erreur le dernier élément.</li>
+            <li><code>splice(taskIndex, 1)</code> signifie : à partir de cette position, retirer un élément. La méthode modifie le tableau existant.</li>
+            <li>La réponse renvoie <code>tasksResponse</code>, qui contient ce même tableau désormais mis à jour.</li>
+          </ul>
+          <p>Le DELETE n’a pas besoin de corps JSON dans cet exercice : l’URL fournit l’identifiant. Après suppression de <code>task-002</code>, <code>GET /tasks</code> doit afficher la liste sans cette tâche.</p>
+          <pre><code>Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Delete</code></pre>
+          <details><summary>Question de rappel</summary><p>Pourquoi teste-t-on <code>taskIndex === -1</code> avant d’appeler <code>splice</code> ?</p></details>
+          <p class="sources"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex">MDN : Array.prototype.findIndex()</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice">MDN : Array.prototype.splice()</a> · <a href="https://expressjs.com/en/guide/routing/">Express 5 : routing</a></p>
+        </article>
+      </section>
+
       <section class="section-card searchable" id="prochaines" data-search="prochaines étapes POST JSON body middleware express.json Zod Prisma">
         <div class="section-head">
           <div class="section-number">→</div>
@@ -537,7 +575,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -Con
           </div>
         </div>
         <ul>
-          <li>Express : supprimer une tâche précise en mémoire avec son identifiant.</li>
+          <li>Express : tester la suppression et vérifier l’ensemble du CRUD en mémoire.</li>
           <li>Prisma : remplacer progressivement la liste en mémoire par une base de données.</li>
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
