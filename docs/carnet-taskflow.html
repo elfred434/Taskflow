@@ -356,9 +356,10 @@ app.get("/projects/current", (_request, response) =&gt; {
           <div class="callout"><strong>Le trajet :</strong> texte JSON envoyé par le client → <code>express.json()</code> → objet JavaScript disponible dans <code>request.body</code> → route Express.</div>
           <pre><code>// Après const app = express(), avant les routes
 app.use(express.json());</code></pre>
-          <p>Comme tout middleware, il doit être enregistré avant la route qui a besoin de <code>request.body</code>. Il ne vérifie pas que les champs reçus sont corrects : les données envoyées par un client restent à valider.</p>
+          <div class="callout warn"><strong>Deux actions différentes :</strong> <code>express.json()</code> fabrique la fonction middleware ; à elle seule, elle ne l’ajoute pas à l’application. <code>app.use(...)</code> l’enregistre pour qu’Express l’exécute. Dans <code>app.use(express.json())</code>, l’appel intérieur se fait d’abord, puis sa fonction résultat est donnée à <code>app.use</code>. Écrire seulement <code>express.json();</code> crée la fonction puis l’ignore. C’est une syntaxe valide, donc TypeScript ne peut pas deviner l’intention manquante.</div>
+          <p>Place <code>app.use(express.json())</code> après la création de <code>app</code> et avant les routes qui lisent <code>request.body</code>. Le middleware ne vérifie pas que les champs reçus sont corrects : les données envoyées par un client restent à valider.</p>
           <p class="sources"><a href="https://expressjs.com/en/5x/api/express/">Documentation officielle Express 5 : <code>express.json()</code></a></p>
-          <details><summary>Question de rappel</summary><p><code>express.json()</code> parse le corps JSON et rend le résultat accessible sur <code>request.body</code>. Est-ce qu’il garantit que <code>title</code> est présent ou que <code>status</code> est autorisé ? Non : cette validation viendra plus tard.</p></details>
+          <details><summary>Question de rappel : que fait chaque partie ?</summary><p><code>express.json()</code> crée le middleware ; <code>app.use(...)</code> l’enregistre. Ensemble, ils font analyser le corps JSON et rendent le résultat accessible sur <code>request.body</code>. Cela ne garantit pas que <code>title</code> est présent ou que <code>status</code> est autorisé : cette validation viendra plus tard.</p></details>
         </article>
       </section>
 
