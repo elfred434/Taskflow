@@ -131,7 +131,7 @@
       <div class="hero-meta">
         <span class="pill">Semaine 1 · bases TypeScript terminées</span>
         <span class="pill">Semaine 2 · Express en cours</span>
-        <span class="pill">Dernière mise à jour : middleware de journalisation</span>
+        <span class="pill">Dernière mise à jour : corps JSON et routes de projet</span>
       </div>
       <div class="progress-line" aria-label="Progression du programme"><span></span></div>
     </div>
@@ -148,6 +148,7 @@
           <a href="#types">Semaine 1 · TypeScript</a>
           <a href="#http">Semaine 2 · HTTP et routes</a>
           <a href="#middleware">Middleware</a>
+          <a href="#corps-json">Corps JSON</a>
           <a href="#prochaines">À venir</a>
         </nav>
         <div class="side-note"><strong>Rituel :</strong> relis une question, réponds sans regarder, puis ouvre la réponse pour vérifier.</div>
@@ -303,7 +304,13 @@ import { tasksResponse } from "./domain.js";</code></pre>
 
 app.get("/tasks", (_request, response) =&gt; {
   response.json(tasksResponse);
+});
+
+app.get("/projects/current", (_request, response) =&gt; {
+  response.json(currentProjectResponse);
 });</code></pre>
+            <p>La même enveloppe générique <code>ApiResponse&lt;T&gt;</code> peut contenir une tâche ou un projet. <code>currentProjectResponse</code> est exporté depuis <code>domain.ts</code>, puis importé par le serveur.</p>
+            <div class="callout"><strong>Réponse observée :</strong> <code>{"data":{"id":"proj-001","name":"Apprendre TypeScript","ownerId":"user-001"}}</code></div>
             <div class="simulator">
               <strong>Simulation pédagogique — ne contacte pas le serveur</strong>
               <p>Observe la forme de la réponse de <code>GET /tasks</code>.</p>
@@ -320,7 +327,7 @@ app.get("/tasks", (_request, response) =&gt; {
           <div class="section-number">03</div>
           <div>
             <h2>Middleware · journaliser les requêtes</h2>
-            <p class="section-sub">La machine de l’apprenant a affiché <code>GET /tasks</code> pendant le test.</p>
+            <p class="section-sub">Le middleware de journalisation s’exécute avant les routes ; le terminal a déjà affiché <code>GET /tasks</code>.</p>
           </div>
         </div>
         <article class="lesson searchable" data-search="app.use next request response logger Express middleware">
@@ -335,6 +342,26 @@ app.get("/tasks", (_request, response) =&gt; {
         </article>
       </section>
 
+      <section class="section-card searchable" id="corps-json" data-search="corps body JSON requête express.json middleware request.body parser Content-Type application/json">
+        <div class="section-head">
+          <div class="section-number">04</div>
+          <div>
+            <h2>Corps JSON d’une requête</h2>
+            <p class="section-sub">Préparer Express à lire les données JSON envoyées à TaskFlow.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="request body express.json app.use parser JSON client données reçues">
+          <div class="lesson-top"><h3>Transformer le JSON reçu en objet JavaScript</h3><span class="tag amber">à pratiquer</span></div>
+          <p class="why"><strong>Pourquoi :</strong> pour créer une tâche, le client devra envoyer ses informations au serveur. Ces données voyagent dans le corps de la requête HTTP. Le middleware intégré <code>express.json()</code> lit les requêtes déclarées comme JSON et place le résultat analysé dans <code>request.body</code>.</p>
+          <div class="callout"><strong>Le trajet :</strong> texte JSON envoyé par le client → <code>express.json()</code> → objet JavaScript disponible dans <code>request.body</code> → route Express.</div>
+          <pre><code>// Après const app = express(), avant les routes
+app.use(express.json());</code></pre>
+          <p>Comme tout middleware, il doit être enregistré avant la route qui a besoin de <code>request.body</code>. Il ne vérifie pas que les champs reçus sont corrects : les données envoyées par un client restent à valider.</p>
+          <p class="sources"><a href="https://expressjs.com/en/5x/api/express/">Documentation officielle Express 5 : <code>express.json()</code></a></p>
+          <details><summary>Question de rappel</summary><p><code>express.json()</code> parse le corps JSON et rend le résultat accessible sur <code>request.body</code>. Est-ce qu’il garantit que <code>title</code> est présent ou que <code>status</code> est autorisé ? Non : cette validation viendra plus tard.</p></details>
+        </article>
+      </section>
+
       <section class="section-card searchable" id="prochaines" data-search="prochaines étapes POST JSON body middleware express.json Zod Prisma">
         <div class="section-head">
           <div class="section-number">→</div>
@@ -344,12 +371,12 @@ app.get("/tasks", (_request, response) =&gt; {
           </div>
         </div>
         <ul>
-          <li>Express : traiter un corps JSON et ajouter des tâches en mémoire.</li>
+          <li>Express : ajouter une tâche en mémoire à partir du corps JSON (prochaine pratique).</li>
           <li>Prisma : remplacer progressivement la liste en mémoire par une base de données.</li>
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
         </ul>
-        <div class="callout warn"><strong>État Git :</strong> le dernier pull du dépôt public était au commit <code>f8212be</code>, qui ne contenait pas encore le middleware <code>app.use</code>. Le journal du terminal montre que la version locale a bien affiché <code>GET /tasks</code> ; il faudra pousser cette modification pour la retrouver dans le dépôt distant.</div>
+        <div class="callout"><strong>État de TaskFlow :</strong> les routes <code>GET /tasks</code>, <code>GET /tasks/current</code> et <code>GET /projects/current</code>, ainsi que le middleware de journalisation, sont maintenant présents sur <code>main</code>.</div>
       </section>
     </main>
   </div>
@@ -375,7 +402,8 @@ app.get("/tasks", (_request, response) =&gt; {
     document.getElementById("simulate").addEventListener("click", () => {
       const sample = {
         data: [
-          { id: "task-001", title: "Les Unions", projectId: "proj-001", status: "todo" }
+          { id: "task-001", title: "Les Unions", projectId: "proj-001", status: "todo" },
+          { id: "task-002", title: "Tester la routes des tâches", projectId: "proj-001", status: "in-progress" }
         ]
       };
       document.getElementById("simOutput").textContent = JSON.stringify(sample, null, 2);
