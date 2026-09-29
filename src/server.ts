@@ -14,9 +14,12 @@ app.use((request, _response, next) =>{
 
 app.get("/tasks", async (_request, response) =>{
     const tasks = await prisma.task.findMany();
-    response.json({data: tasks})
-})
+    response.json({data: tasks});
+});
 
+app.listen(3000, () => {
+     console.log("TaskFlow écoute sur le port 3000")
+ })
 /* Ancien modèle sans prisma */
 // app.get("/tasks/current", (_request, response) => {
 //     response.json(currentTaskResponse)
