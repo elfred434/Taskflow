@@ -596,6 +596,9 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -Con
           <pre><code>pnpm add -D prisma@7 @types/better-sqlite3
 pnpm add @prisma/client@7 @prisma/adapter-better-sqlite3 dotenv</code></pre>
           <p><code>-D</code> place les outils de développement dans <code>devDependencies</code> ; les autres paquets sont nécessaires à l’application à l’exécution. TaskFlow possède déjà <code>@types/node</code>, donc inutile de le réinstaller.</p>
+          <h3>Pourquoi pnpm a bloqué les scripts ?</h3>
+          <p>Depuis pnpm 10, les scripts d’installation des dépendances peuvent être bloqués jusqu’à approbation explicite. Les paquets ont bien été ajoutés, mais leurs scripts n’ont pas encore tourné. Dans ce projet, les scripts attendus sont ceux de <code>@prisma/engines</code> et <code>prisma</code> (outils Prisma), ainsi que <code>better-sqlite3</code> (pilote SQLite natif).</p>
+          <p>Avec pnpm 12, <code>pnpm approve-builds</code> enregistre les choix dans <code>pnpm-workspace.yaml</code>, afin que le projet garde une règle explicite sur les scripts autorisés. On approuve seulement les dépendances attendues, jamais tout en bloc.</p>
           <p class="sources"><a href="https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/sqlite">Guide officiel Prisma 7 : SQLite, schéma et migrations</a> · <a href="https://www.prisma.io/docs/orm/coming-from-prisma-orm-7">Documentation Prisma : évolution du flux vers Prisma 8</a></p>
         </article>
       </section>
