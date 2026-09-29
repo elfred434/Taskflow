@@ -1,5 +1,6 @@
-import express from "express";
+import express, { response } from "express";
 import { currentTaskResponse, tasksResponse, currentProjectResponse, tasks } from "./domain.js";
+import { request } from "http";
 
 
 const app = express();
@@ -14,9 +15,19 @@ app.get("/tasks/current", (_request, response) => {
     response.json(currentTaskResponse)
 })
 
+/*trouvez une tâche*/
+app.get("/tasks/:id", (request, response) => {
+   const foundTask = tasks.find(
+    (oneTask) => oneTask.id === request.params.id
+    );
+    response.json({data: foundTask});
+})
+
+
 app.get("/tasks", (_request, response) => {
     response.json(tasksResponse)
 })
+/*créé une tâche*/
 app.post("/tasks", (request, response) => {
     tasks.push(request.body);
     response.json(tasksResponse)
