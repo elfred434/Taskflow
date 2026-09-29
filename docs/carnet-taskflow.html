@@ -604,6 +604,30 @@ pnpm add @prisma/client@7 @prisma/adapter-better-sqlite3 dotenv</code></pre>
         </article>
       </section>
 
+      <section class="section-card searchable" id="initialiser-prisma" data-search="Prisma ORM 7 initialisation init schema prisma7.config SQLite dotenv DATABASE_URL client output rootDir">
+        <div class="section-head">
+          <div class="section-number">12</div>
+          <div>
+            <h2>Initialiser Prisma 7 sans encore créer de table</h2>
+            <p class="section-sub">Préparer le schéma, la configuration et le chemin du client généré avant de modéliser TaskFlow.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="pnpm exec prisma init datasource-provider sqlite output src generated rootDir">
+          <div class="lesson-top"><h3>Le squelette du projet</h3><span class="tag amber">à pratiquer</span></div>
+          <p class="why"><strong>Pourquoi :</strong> Prisma a besoin d’un fichier de schéma pour décrire les futures tables et d’une configuration pour savoir où se trouve la base. On prépare ces fichiers avant d’écrire le modèle <code>Task</code>.</p>
+          <pre><code>pnpm exec prisma init --datasource-provider sqlite --output ../src/generated/prisma</code></pre>
+          <ul>
+            <li><code>pnpm exec</code> lance l’outil Prisma installé dans ce projet, sans installation globale.</li>
+            <li><code>prisma init</code> crée les fichiers de départ ; il ne crée pas encore de table.</li>
+            <li><code>--datasource-provider sqlite</code> choisit SQLite comme base.</li>
+            <li><code>--output ../src/generated/prisma</code> place plus tard le client TypeScript généré sous <code>src</code>. Ce chemin est relatif au schéma ; cela respecte le <code>rootDir: "./src"</code> actuel de TypeScript.</li>
+          </ul>
+          <p>Avec Prisma 7.10, la commande crée notamment <code>prisma/schema.prisma</code>, <code>prisma7.config.ts</code> et <code>.env</code>. Le schéma est un plan : la vraie table SQLite ne sera créée qu’avec une migration, dans une étape ultérieure.</p>
+          <details><summary>Question de vérification</summary><p>Après <code>prisma init</code>, les tables SQLite existent-elles déjà, ou avons-nous seulement préparé les fichiers de configuration et le schéma ?</p></details>
+          <p class="sources"><a href="https://www.prisma.io/docs/v7/prisma-orm/quickstart/sqlite">Guide officiel Prisma ORM 7 : initialiser SQLite</a></p>
+        </article>
+      </section>
+
       <section class="section-card searchable" id="prochaines" data-search="prochaines étapes POST JSON body middleware express.json Zod Prisma">
         <div class="section-head">
           <div class="section-number">→</div>
@@ -614,7 +638,7 @@ pnpm add @prisma/client@7 @prisma/adapter-better-sqlite3 dotenv</code></pre>
         </div>
         <ul>
           <li>Express : opérations CRUD en mémoire testées.</li>
-          <li>Prisma : créer le schéma SQLite de TaskFlow, puis sa première migration.</li>
+          <li>Prisma : décrire le modèle Task dans le schéma, puis créer une migration SQLite.</li>
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
         </ul>
