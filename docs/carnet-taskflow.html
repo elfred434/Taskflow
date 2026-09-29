@@ -131,7 +131,7 @@
       <div class="hero-meta">
         <span class="pill">Semaine 1 · bases TypeScript terminées</span>
         <span class="pill">Semaine 2 · Express en cours</span>
-        <span class="pill">Dernière mise à jour : gérer un identifiant introuvable</span>
+        <span class="pill">Dernière mise à jour : modifier une tâche avec PATCH</span>
       </div>
       <div class="progress-line" aria-label="Progression du programme"><span></span></div>
     </div>
@@ -153,6 +153,7 @@
           <a href="#route-parametres">Paramètre d’URL</a>
           <a href="#trouver-task">Chercher une tâche</a>
           <a href="#introuvable">Tâche introuvable</a>
+          <a href="#patch-task">PATCH · modifier</a>
           <a href="#prochaines">À venir</a>
         </nav>
         <div class="side-note"><strong>Rituel :</strong> relis une question, réponds sans regarder, puis ouvre la réponse pour vérifier.</div>
@@ -462,7 +463,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
           </div>
         </div>
         <article class="lesson searchable" data-search="if !foundTask undefined HTTP 404 status code return stop handler">
-          <div class="lesson-top"><h3>Le résultat absent et le statut 404</h3><span class="tag amber">à pratiquer</span></div>
+          <div class="lesson-top"><h3>Le résultat absent et le statut 404</h3><span class="tag green">testé</span></div>
           <p class="why"><strong>Pourquoi :</strong> <code>find()</code> renvoie <code>undefined</code> si aucun identifiant ne correspond. L’API ne doit pas faire croire qu’une tâche existe : elle doit répondre <code>404 Not Found</code>, c’est-à-dire « ressource introuvable ».</p>
           <pre><code>app.get("/tasks/:id", (request, response) =&gt; {
   const foundTask = tasks.find(
@@ -488,6 +489,44 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
         </article>
       </section>
 
+      <section class="section-card searchable" id="patch-task" data-search="PATCH modifier mise à jour partielle tâche status statut request.body tasks id Express">
+        <div class="section-head">
+          <div class="section-number">09</div>
+          <div>
+            <h2>Modifier une tâche avec PATCH</h2>
+            <p class="section-sub">Changer un champ d’une tâche ciblée par son identifiant.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="PATCH route app.patch partial update status TaskStatus foundTask">
+          <div class="lesson-top"><h3>Une mise à jour partielle</h3><span class="tag amber">à pratiquer</span></div>
+          <p class="why"><strong>Pourquoi :</strong> si on veut seulement changer le statut d’une tâche, il n’est pas nécessaire de renvoyer toutes ses propriétés. <code>PATCH /tasks/:id</code> désigne la tâche avec son identifiant dans l’URL ; le corps JSON fournit le nouveau statut.</p>
+          <pre><code>app.patch("/tasks/:id", (request, response) =&gt; {
+  const foundTask = tasks.find(
+    (oneTask) =&gt; oneTask.id === request.params.id
+  );
+
+  if (!foundTask) {
+    response.status(404).json({ error: "Tâche introuvable" });
+    return;
+  }
+
+  foundTask.status = request.body.status;
+  response.json({ data: foundTask });
+});</code></pre>
+          <ul>
+            <li><code>app.patch</code> associe la méthode PATCH à la route ; l’identifiant vient de <code>request.params.id</code>.</li>
+            <li><code>foundTask.status = ...</code> remplace seulement la valeur du statut ; les autres propriétés de cette tâche restent les mêmes.</li>
+            <li>Le statut reçu doit être une valeur prévue par <code>TaskStatus</code>, par exemple <code>"done"</code>. <code>request.body</code> reste une entrée externe non vérifiée ; Zod s’en chargera dans une étape ultérieure.</li>
+          </ul>
+          <p>Pour tester, le corps JSON ne contient que le champ à modifier : <code>{"status":"done"}</code>. Après le PATCH, <code>GET /tasks/task-002</code> doit montrer le statut <code>"done"</code>.</p>
+          <pre><code>$patchJson = '{"status":"done"}'
+Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -ContentType "application/json" -Body $patchJson</code></pre>
+          <p>Le changement reste en mémoire : redémarrer le serveur rétablit les tâches initiales. Si PowerShell refuse la méthode <code>Patch</code>, vérifier sa version avec <code>$PSVersionTable.PSVersion</code>.</p>
+          <details><summary>Question de rappel</summary><p>Pourquoi le corps de cet exemple contient-il seulement <code>status</code> au lieu de l’objet Task complet ? Parce que cette opération ne modifie qu’un seul champ.</p></details>
+          <p class="sources"><a href="https://expressjs.com/en/guide/routing/">Documentation officielle Express 5 : routing</a> · <a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-restmethod?view=powershell-7.5">Microsoft : Invoke-RestMethod</a></p>
+        </article>
+      </section>
+
       <section class="section-card searchable" id="prochaines" data-search="prochaines étapes POST JSON body middleware express.json Zod Prisma">
         <div class="section-head">
           <div class="section-number">→</div>
@@ -497,12 +536,12 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
           </div>
         </div>
         <ul>
-          <li>Express : modifier puis supprimer une tâche précise en mémoire avec son identifiant.</li>
+          <li>Express : supprimer une tâche précise en mémoire avec son identifiant.</li>
           <li>Prisma : remplacer progressivement la liste en mémoire par une base de données.</li>
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
         </ul>
-        <div class="callout"><strong>État de TaskFlow :</strong> les routes <code>GET /tasks</code>, <code>GET /tasks/current</code>, <code>GET /tasks/:id</code>, <code>POST /tasks</code> et <code>GET /projects/current</code>, ainsi que le middleware JSON et le journal de requêtes, sont maintenant sur <code>main</code>.</div>
+        <div class="callout"><strong>État de TaskFlow :</strong> les routes <code>GET /tasks</code>, <code>GET /tasks/current</code>, <code>GET /tasks/:id</code> (avec réponse 404 si absent), <code>POST /tasks</code> et <code>GET /projects/current</code>, ainsi que le middleware JSON et le journal de requêtes, sont maintenant sur <code>main</code>.</div>
       </section>
     </main>
   </div>
