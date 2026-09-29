@@ -44,6 +44,21 @@ app.patch("/tasks/:id", (request, response) => {
     response.json({data: foundTask});
 })
 
+app.delete("/tasks/:id", (request, response) => {
+    const taskIndex = tasks.findIndex(
+        (oneTask) => oneTask.id === request.params.id
+    );
+
+    if (taskIndex === -1){
+        response.status(404).json({error: "Tâche introuvable"})
+        return;
+    }
+
+    tasks.splice(taskIndex, 1)
+
+    response.json(tasksResponse)
+})
+
 
 app.get("/tasks", (_request, response) => {
     response.json(tasksResponse)
