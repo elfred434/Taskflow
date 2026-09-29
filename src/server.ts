@@ -1,6 +1,6 @@
 import express from "express";
 import { currentTaskResponse, tasksResponse, currentProjectResponse, tasks } from "./domain.js";
-
+import "dotenv/config";
 
 
 const app = express();
