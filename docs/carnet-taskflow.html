@@ -131,7 +131,7 @@
       <div class="hero-meta">
         <span class="pill">Semaine 1 · bases TypeScript terminées</span>
         <span class="pill">Semaine 2 · Express en cours</span>
-        <span class="pill">Dernière mise à jour : corps JSON et routes de projet</span>
+        <span class="pill">Dernière mise à jour : création par POST en mémoire</span>
       </div>
       <div class="progress-line" aria-label="Progression du programme"><span></span></div>
     </div>
@@ -377,8 +377,28 @@ app.use(express.json());</code></pre>
           <p class="why"><strong>Pourquoi :</strong> <code>GET /tasks</code> sert à lire la liste existante. Pour demander au serveur de créer une tâche, TaskFlow utilisera <code>POST /tasks</code> et les données du corps JSON. Le chemin reste <code>/tasks</code>, mais la méthode change ; Express distingue les deux routes par cette paire méthode + chemin.</p>
           <div class="callout"><strong>À comparer :</strong><br><code>GET /tasks</code> → lire la liste<br><code>POST /tasks</code> → demander la création d’une tâche à partir des données envoyées</div>
           <p><strong>Important :</strong> le mot <code>POST</code> ne sauvegarde rien à lui seul. Il sélectionne un gestionnaire. C’est le code de ce gestionnaire qui devra lire <code>request.body</code> et ajouter la tâche au tableau en mémoire.</p>
+          <h3>Dans le gestionnaire, trois actions</h3>
+          <ol>
+            <li>Importer le tableau <code>tasks</code> depuis <code>domain.ts</code> : c’est la liste gardée en mémoire.</li>
+            <li>Appeler <code>tasks.push(request.body)</code> : <code>push</code> ajoute l’objet reçu à la fin du tableau. <code>request.body</code> vient du middleware JSON.</li>
+            <li>Renvoyer <code>tasksResponse</code> avec <code>response.json(...)</code> ; son enveloppe <code>data</code> contient ce même tableau mis à jour.</li>
+          </ol>
+          <pre><code>app.post("/tasks", (request, response) =&gt; {
+  tasks.push(request.body);
+  response.json(tasksResponse);
+});</code></pre>
+          <div class="callout warn"><strong>Limite de cette première version :</strong> <code>request.body</code> vient d’un client et n’est pas validé automatiquement par TypeScript. Pour l’exercice, envoie un objet qui respecte bien la forme <code>Task</code>. Plus tard, Zod vérifiera les données reçues. Le tableau est en mémoire : le redémarrage du serveur le réinitialise.</div>
           <p>Pour notre premier test, le corps sera un objet de forme <code>Task</code> avec <code>id</code>, <code>title</code>, <code>projectId</code> et <code>status</code>. Nous fournirons l’<code>id</code> manuellement pour l’exercice ; sa création automatique viendra plus tard.</p>
-          <details><summary>Question de rappel</summary><p>Pourquoi Express peut-il avoir une route <code>GET /tasks</code> et une route <code>POST /tasks</code> ? Parce que la méthode HTTP fait partie de l’identification de la route, avec le chemin.</p></details>
+          <p>Dans PowerShell, on peut envoyer ce JSON avec <code>Invoke-RestMethod</code> :</p>
+          <pre><code>$taskJson = '{"id":"task-003","title":"Créer ma première tâche par POST","projectId":"proj-001","status":"todo"}'
+Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body $taskJson</code></pre>
+          <p><code>$taskJson</code> garde le texte JSON ; <code>-Method Post</code> choisit la route POST ; <code>-ContentType</code> indique que le corps est du JSON ; <code>-Body</code> envoie ce contenu au serveur. Cette commande est prévue pour Windows PowerShell.</p>
+          <p class="sources"><a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-restmethod?view=powershell-7.5">Documentation Microsoft : Invoke-RestMethod</a></p>
+          <details><summary>Question de rappel : pourquoi GET et POST peuvent-ils partager /tasks ?</summary><p>Parce que la méthode HTTP fait partie de l’identification de la route, avec le chemin.</p></details>
+          <details><summary>Question de rappel : que fait <code>tasks.push(request.body)</code> ?</summary><p><code>push</code> ajoute l’objet reçu à la fin du tableau en mémoire. Cela ne valide pas l’objet et ne l’écrit pas sur le disque.</p></details>
           <p class="sources"><a href="https://expressjs.com/en/guide/routing/">Documentation officielle Express 5 : routing</a></p>
         </article>
       </section>
@@ -392,7 +412,7 @@ app.use(express.json());</code></pre>
           </div>
         </div>
         <ul>
-          <li>Express : ajouter une tâche en mémoire à partir du corps JSON (prochaine pratique).</li>
+          <li>Express : tester puis valider la création d’une tâche en mémoire par POST.</li>
           <li>Prisma : remplacer progressivement la liste en mémoire par une base de données.</li>
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
