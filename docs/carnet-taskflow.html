@@ -149,6 +149,7 @@
           <a href="#http">Semaine 2 · HTTP et routes</a>
           <a href="#middleware">Middleware</a>
           <a href="#corps-json">Corps JSON</a>
+          <a href="#post-create">POST · créer une tâche</a>
           <a href="#prochaines">À venir</a>
         </nav>
         <div class="side-note"><strong>Rituel :</strong> relis une question, réponds sans regarder, puis ouvre la réponse pour vérifier.</div>
@@ -351,7 +352,7 @@ app.get("/projects/current", (_request, response) =&gt; {
           </div>
         </div>
         <article class="lesson searchable" data-search="request body express.json app.use parser JSON client données reçues">
-          <div class="lesson-top"><h3>Transformer le JSON reçu en objet JavaScript</h3><span class="tag amber">à pratiquer</span></div>
+          <div class="lesson-top"><h3>Transformer le JSON reçu en objet JavaScript</h3><span class="tag amber">installé · à vérifier avec POST</span></div>
           <p class="why"><strong>Pourquoi :</strong> pour créer une tâche, le client devra envoyer ses informations au serveur. Ces données voyagent dans le corps de la requête HTTP. Le middleware intégré <code>express.json()</code> lit les requêtes déclarées comme JSON et place le résultat analysé dans <code>request.body</code>.</p>
           <div class="callout"><strong>Le trajet :</strong> texte JSON envoyé par le client → <code>express.json()</code> → objet JavaScript disponible dans <code>request.body</code> → route Express.</div>
           <pre><code>// Après const app = express(), avant les routes
@@ -360,6 +361,25 @@ app.use(express.json());</code></pre>
           <p>Place <code>app.use(express.json())</code> après la création de <code>app</code> et avant les routes qui lisent <code>request.body</code>. Le middleware ne vérifie pas que les champs reçus sont corrects : les données envoyées par un client restent à valider.</p>
           <p class="sources"><a href="https://expressjs.com/en/5x/api/express/">Documentation officielle Express 5 : <code>express.json()</code></a></p>
           <details><summary>Question de rappel : que fait chaque partie ?</summary><p><code>express.json()</code> crée le middleware ; <code>app.use(...)</code> l’enregistre. Ensemble, ils font analyser le corps JSON et rendent le résultat accessible sur <code>request.body</code>. Cela ne garantit pas que <code>title</code> est présent ou que <code>status</code> est autorisé : cette validation viendra plus tard.</p></details>
+        </article>
+      </section>
+
+      <section class="section-card searchable" id="post-create" data-search="POST créer task tâche route méthode HTTP chemin body request corps JSON app.post">
+        <div class="section-head">
+          <div class="section-number">05</div>
+          <div>
+            <h2>POST /tasks · demander la création d’une tâche</h2>
+            <p class="section-sub">On distingue lire la liste et demander l’ajout d’une tâche.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="GET POST même chemin méthode route Express création ressource">
+          <div class="lesson-top"><h3>La méthode HTTP et le chemin choisissent la route</h3><span class="tag amber">notion en cours</span></div>
+          <p class="why"><strong>Pourquoi :</strong> <code>GET /tasks</code> sert à lire la liste existante. Pour demander au serveur de créer une tâche, TaskFlow utilisera <code>POST /tasks</code> et les données du corps JSON. Le chemin reste <code>/tasks</code>, mais la méthode change ; Express distingue les deux routes par cette paire méthode + chemin.</p>
+          <div class="callout"><strong>À comparer :</strong><br><code>GET /tasks</code> → lire la liste<br><code>POST /tasks</code> → demander la création d’une tâche à partir des données envoyées</div>
+          <p><strong>Important :</strong> le mot <code>POST</code> ne sauvegarde rien à lui seul. Il sélectionne un gestionnaire. C’est le code de ce gestionnaire qui devra lire <code>request.body</code> et ajouter la tâche au tableau en mémoire.</p>
+          <p>Pour notre premier test, le corps sera un objet de forme <code>Task</code> avec <code>id</code>, <code>title</code>, <code>projectId</code> et <code>status</code>. Nous fournirons l’<code>id</code> manuellement pour l’exercice ; sa création automatique viendra plus tard.</p>
+          <details><summary>Question de rappel</summary><p>Pourquoi Express peut-il avoir une route <code>GET /tasks</code> et une route <code>POST /tasks</code> ? Parce que la méthode HTTP fait partie de l’identification de la route, avec le chemin.</p></details>
+          <p class="sources"><a href="https://expressjs.com/en/guide/routing/">Documentation officielle Express 5 : routing</a></p>
         </article>
       </section>
 
