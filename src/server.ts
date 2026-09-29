@@ -22,7 +22,7 @@ app.get("/tasks/:id", (request, response) => {
     );
     if (!foundTask) {
         response.status(404).json({error: "Tâches introuvables"})
-        return
+        return;
     }
     response.json({data: foundTask});
 })
