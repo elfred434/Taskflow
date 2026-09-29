@@ -498,7 +498,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
           </div>
         </div>
         <article class="lesson searchable" data-search="PATCH route app.patch partial update status TaskStatus foundTask">
-          <div class="lesson-top"><h3>Une mise à jour partielle</h3><span class="tag amber">à pratiquer</span></div>
+          <div class="lesson-top"><h3>Une mise à jour partielle</h3><span class="tag green">testé</span></div>
           <p class="why"><strong>Pourquoi :</strong> si on veut seulement changer le statut d’une tâche, il n’est pas nécessaire de renvoyer toutes ses propriétés. <code>PATCH /tasks/:id</code> désigne la tâche avec son identifiant dans l’URL ; le corps JSON fournit le nouveau statut.</p>
           <pre><code>app.patch("/tasks/:id", (request, response) =&gt; {
   const foundTask = tasks.find(
@@ -519,6 +519,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
             <li>Le statut reçu doit être une valeur prévue par <code>TaskStatus</code>, par exemple <code>"done"</code>. <code>request.body</code> reste une entrée externe non vérifiée ; Zod s’en chargera dans une étape ultérieure.</li>
           </ul>
           <p>Pour tester, le corps JSON ne contient que le champ à modifier : <code>{"status":"done"}</code>. Après le PATCH, <code>GET /tasks/task-002</code> doit montrer le statut <code>"done"</code>.</p>
+          <div class="callout"><strong>Test observé :</strong> <code>PATCH /tasks/task-002</code> a renvoyé la tâche avec le statut <code>"done"</code>.</div>
           <pre><code>$patchJson = '{"status":"done"}'
 Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -ContentType "application/json" -Body $patchJson</code></pre>
           <p>Le changement reste en mémoire : redémarrer le serveur rétablit les tâches initiales. Si PowerShell refuse la méthode <code>Patch</code>, vérifier sa version avec <code>$PSVersionTable.PSVersion</code>.</p>
@@ -541,7 +542,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -Con
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
         </ul>
-        <div class="callout"><strong>État de TaskFlow :</strong> les routes <code>GET /tasks</code>, <code>GET /tasks/current</code>, <code>GET /tasks/:id</code> (avec réponse 404 si absent), <code>POST /tasks</code> et <code>GET /projects/current</code>, ainsi que le middleware JSON et le journal de requêtes, sont maintenant sur <code>main</code>.</div>
+        <div class="callout"><strong>État de TaskFlow :</strong> les routes <code>GET /tasks</code>, <code>GET /tasks/current</code>, <code>GET /tasks/:id</code> (avec réponse 404 si absent), <code>POST /tasks</code>, <code>PATCH /tasks/:id</code> et <code>GET /projects/current</code>, ainsi que le middleware JSON et le journal de requêtes, sont maintenant sur <code>main</code>.</div>
       </section>
     </main>
   </div>
