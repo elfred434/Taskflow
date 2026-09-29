@@ -131,7 +131,7 @@
       <div class="hero-meta">
         <span class="pill">Semaine 1 · bases TypeScript terminées</span>
         <span class="pill">Semaine 2 · Express en cours</span>
-        <span class="pill">Dernière mise à jour : retrouver une tâche par son id</span>
+        <span class="pill">Dernière mise à jour : gérer un identifiant introuvable</span>
       </div>
       <div class="progress-line" aria-label="Progression du programme"><span></span></div>
     </div>
@@ -152,6 +152,7 @@
           <a href="#post-create">POST · créer une tâche</a>
           <a href="#route-parametres">Paramètre d’URL</a>
           <a href="#trouver-task">Chercher une tâche</a>
+          <a href="#introuvable">Tâche introuvable</a>
           <a href="#prochaines">À venir</a>
         </nav>
         <div class="side-note"><strong>Rituel :</strong> relis une question, réponds sans regarder, puis ouvre la réponse pour vérifier.</div>
@@ -449,6 +450,40 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
           <p>La route <code>GET /tasks/:id</code> est placée après la route statique <code>GET /tasks/current</code> : ainsi, <code>:id</code> ne capture pas le mot <code>current</code>. La réponse « identifiant absent » sera traitée dans l’étape suivante ; ici, on teste d’abord un identifiant qui existe.</p>
           <details><summary>Question de rappel</summary><p>Si la liste contient une tâche avec <code>id: "task-002"</code>, quel objet <code>find()</code> renvoie-t-il quand l’URL est <code>/tasks/task-002</code> ?</p></details>
           <p class="sources"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find">MDN : Array.prototype.find()</a> · <a href="https://expressjs.com/en/guide/routing/">Express : paramètres de route</a></p>
+        </article>
+      </section>
+
+      <section class="section-card searchable" id="introuvable" data-search="404 not found tâche introuvable undefined if condition return response.status Express erreur">
+        <div class="section-head">
+          <div class="section-number">08</div>
+          <div>
+            <h2>Répondre si l’identifiant est introuvable</h2>
+            <p class="section-sub">Une recherche peut réussir ou ne trouver aucun objet.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="if !foundTask undefined HTTP 404 status code return stop handler">
+          <div class="lesson-top"><h3>Le résultat absent et le statut 404</h3><span class="tag amber">à pratiquer</span></div>
+          <p class="why"><strong>Pourquoi :</strong> <code>find()</code> renvoie <code>undefined</code> si aucun identifiant ne correspond. L’API ne doit pas faire croire qu’une tâche existe : elle doit répondre <code>404 Not Found</code>, c’est-à-dire « ressource introuvable ».</p>
+          <pre><code>app.get("/tasks/:id", (request, response) =&gt; {
+  const foundTask = tasks.find(
+    (oneTask) =&gt; oneTask.id === request.params.id
+  );
+
+  if (!foundTask) {
+    response.status(404).json({ error: "Tâche introuvable" });
+    return;
+  }
+
+  response.json({ data: foundTask });
+});</code></pre>
+          <ul>
+            <li><code>if (!foundTask)</code> vérifie qu’aucune tâche n’a été trouvée. Ici, <code>!undefined</code> vaut <code>true</code>.</li>
+            <li><code>response.status(404)</code> choisit le code HTTP ; <code>.json(...)</code> envoie aussi un message JSON.</li>
+            <li><code>return</code> arrête le gestionnaire après la réponse d’erreur ; sinon le code pourrait continuer et tenter d’envoyer une deuxième réponse.</li>
+          </ul>
+          <div class="callout"><strong>Résultat attendu :</strong> <code>GET /tasks/id-inexistant</code> reçoit le statut <code>404</code> et le JSON <code>{"error":"Tâche introuvable"}</code>. Pour une tâche existante, la réponse reste <code>{"data":{...}}</code>.</div>
+          <details><summary>Question de rappel</summary><p>Pourquoi met-on <code>return</code> après l’envoi de la réponse 404 ? Pour sortir du gestionnaire et ne pas tenter ensuite d’envoyer aussi la réponse normale.</p></details>
+          <p class="sources"><a href="https://expressjs.com/en/5x/api/response/#res.status">Documentation officielle Express 5 : res.status()</a></p>
         </article>
       </section>
 
