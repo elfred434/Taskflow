@@ -434,7 +434,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
           </div>
         </div>
         <article class="lesson searchable" data-search="tasks.find callback arrow fonction comparaison === objet trouvé undefined">
-          <div class="lesson-top"><h3>La méthode <code>find()</code></h3><span class="tag amber">à pratiquer</span></div>
+          <div class="lesson-top"><h3>La méthode <code>find()</code></h3><span class="tag green">testé</span></div>
           <p class="why"><strong>Pourquoi :</strong> <code>request.params.id</code> donne l’identifiant demandé, mais ce texte n’est pas la tâche elle-même. <code>tasks.find(...)</code> parcourt le tableau et cherche le premier élément qui satisfait une comparaison.</p>
           <pre><code>const foundTask = tasks.find(
   (oneTask) =&gt; oneTask.id === request.params.id
@@ -445,7 +445,8 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
             <li><code>find()</code> renvoie l’objet trouvé, ou <code>undefined</code> si aucun élément ne correspond.</li>
           </ul>
           <div class="callout"><strong>Application TaskFlow :</strong> avec <code>GET /tasks/task-002</code>, la route reçoit <code>request.params.id === "task-002"</code>, puis recherche la tâche dont <code>id</code> vaut <code>"task-002"</code>.</div>
-          <p>Quand on écrira la route <code>GET /tasks/:id</code>, elle devra être placée après la route statique <code>GET /tasks/current</code> : sinon, <code>:id</code> pourrait capturer le mot <code>current</code>. La réponse « identifiant absent » sera traitée dans l’étape suivante ; ici, on teste d’abord un identifiant qui existe.</p>
+          <div class="callout"><strong>Test observé :</strong> <code>GET /tasks/task-001</code> et <code>GET /tasks/task-002</code> ont chacun renvoyé l’objet correspondant sous <code>data</code>.</div>
+          <p>La route <code>GET /tasks/:id</code> est placée après la route statique <code>GET /tasks/current</code> : ainsi, <code>:id</code> ne capture pas le mot <code>current</code>. La réponse « identifiant absent » sera traitée dans l’étape suivante ; ici, on teste d’abord un identifiant qui existe.</p>
           <details><summary>Question de rappel</summary><p>Si la liste contient une tâche avec <code>id: "task-002"</code>, quel objet <code>find()</code> renvoie-t-il quand l’URL est <code>/tasks/task-002</code> ?</p></details>
           <p class="sources"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find">MDN : Array.prototype.find()</a> · <a href="https://expressjs.com/en/guide/routing/">Express : paramètres de route</a></p>
         </article>
@@ -465,7 +466,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
         </ul>
-        <div class="callout"><strong>État de TaskFlow :</strong> les routes <code>GET /tasks</code>, <code>GET /tasks/current</code>, <code>POST /tasks</code> et <code>GET /projects/current</code>, ainsi que le middleware JSON et le journal de requêtes, sont maintenant sur <code>main</code>.</div>
+        <div class="callout"><strong>État de TaskFlow :</strong> les routes <code>GET /tasks</code>, <code>GET /tasks/current</code>, <code>GET /tasks/:id</code>, <code>POST /tasks</code> et <code>GET /projects/current</code>, ainsi que le middleware JSON et le journal de requêtes, sont maintenant sur <code>main</code>.</div>
       </section>
     </main>
   </div>
