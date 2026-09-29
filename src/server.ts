@@ -27,6 +27,22 @@ app.get("/tasks/:id", (request, response) => {
     response.json({data: foundTask});
 })
 
+/* modifier une tâche sans renvoyez toutes ses proprietés */
+
+app.patch("/tasks/:id", (request, response) => {
+    const foundTask = tasks.find(
+        (oneTask) => oneTask.id === request.params.id
+    );
+
+    if (!foundTask) {
+        response.status(404).json({error: "Tâche introuvable"})
+    }
+    if (foundTask) {
+        foundTask.status = request.body.status
+    }
+    response.json({data: foundTask});
+})
+
 
 app.get("/tasks", (_request, response) => {
     response.json(tasksResponse)
