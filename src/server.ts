@@ -20,6 +20,9 @@ app.get("/tasks/:id", (request, response) => {
    const foundTask = tasks.find(
     (oneTask) => oneTask.id === request.params.id
     );
+    if (!foundTask) {
+        response.status(404).json({error: "Tâches introuvables"})
+    }
     response.json({data: foundTask});
 })
 
