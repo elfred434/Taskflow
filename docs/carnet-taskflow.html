@@ -131,7 +131,7 @@
       <div class="hero-meta">
         <span class="pill">Semaine 1 · bases TypeScript terminées</span>
         <span class="pill">Semaine 2 · Express en cours</span>
-        <span class="pill">Dernière mise à jour : création par POST en mémoire</span>
+        <span class="pill">Dernière mise à jour : retrouver une tâche par son id</span>
       </div>
       <div class="progress-line" aria-label="Progression du programme"><span></span></div>
     </div>
@@ -150,6 +150,8 @@
           <a href="#middleware">Middleware</a>
           <a href="#corps-json">Corps JSON</a>
           <a href="#post-create">POST · créer une tâche</a>
+          <a href="#route-parametres">Paramètre d’URL</a>
+          <a href="#trouver-task">Chercher une tâche</a>
           <a href="#prochaines">À venir</a>
         </nav>
         <div class="side-note"><strong>Rituel :</strong> relis une question, réponds sans regarder, puis ouvre la réponse pour vérifier.</div>
@@ -405,6 +407,50 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
         </article>
       </section>
 
+      <section class="section-card searchable" id="route-parametres" data-search="paramètre de route params request.params id URL task tasks Express chemin dynamique">
+        <div class="section-head">
+          <div class="section-number">06</div>
+          <div>
+            <h2>Un paramètre d’URL pour viser une tâche</h2>
+            <p class="section-sub">Passer l’identifiant d’une tâche dans le chemin de la requête.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="route parameter :id request.params URL Express string valeur capturée">
+          <div class="lesson-top"><h3>Le placeholder <code>:id</code></h3><span class="tag amber">notion en cours</span></div>
+          <p class="why"><strong>Pourquoi :</strong> <code>GET /tasks</code> vise toute la liste. Pour viser une tâche particulière dans TaskFlow, le chemin peut contenir son identifiant. Le symbole <code>:</code> indique à Express qu’un morceau du chemin doit être capturé comme paramètre.</p>
+          <div class="callout"><strong>Exemple TaskFlow :</strong><br>Modèle de route : <code>/tasks/:id</code><br>Requête reçue : <code>/tasks/task-003</code><br>Valeur capturée : <code>request.params.id</code> vaut la chaîne <code>"task-003"</code></div>
+          <p><code>:id</code> est le nom donné au paramètre dans le modèle de route. <code>request.params.id</code> est la valeur réelle capturée dans l’URL ; ici, c’est un texte, car les identifiants <code>Task</code> sont des chaînes.</p>
+          <details><summary>Question de rappel</summary><p>Avec le modèle <code>/tasks/:id</code>, quelle valeur Express place dans <code>request.params.id</code> quand l’URL reçue est <code>/tasks/task-002</code> ?</p></details>
+          <p class="sources"><a href="https://expressjs.com/en/guide/routing/">Documentation officielle Express 5 : paramètres de route</a></p>
+        </article>
+      </section>
+
+      <section class="section-card searchable" id="trouver-task" data-search="Array.find trouver chercher tâche id param request.params route GET tableau">
+        <div class="section-head">
+          <div class="section-number">07</div>
+          <div>
+            <h2>Retrouver une tâche dans le tableau</h2>
+            <p class="section-sub">Utiliser l’identifiant capturé dans l’URL pour repérer l’objet correspondant.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="tasks.find callback arrow fonction comparaison === objet trouvé undefined">
+          <div class="lesson-top"><h3>La méthode <code>find()</code></h3><span class="tag amber">à pratiquer</span></div>
+          <p class="why"><strong>Pourquoi :</strong> <code>request.params.id</code> donne l’identifiant demandé, mais ce texte n’est pas la tâche elle-même. <code>tasks.find(...)</code> parcourt le tableau et cherche le premier élément qui satisfait une comparaison.</p>
+          <pre><code>const foundTask = tasks.find(
+  (oneTask) =&gt; oneTask.id === request.params.id
+);</code></pre>
+          <ul>
+            <li><code>oneTask</code> représente l’élément examiné à chaque tour.</li>
+            <li><code>===</code> vérifie si son identifiant est exactement égal à celui capturé dans l’URL.</li>
+            <li><code>find()</code> renvoie l’objet trouvé, ou <code>undefined</code> si aucun élément ne correspond.</li>
+          </ul>
+          <div class="callout"><strong>Application TaskFlow :</strong> avec <code>GET /tasks/task-002</code>, la route reçoit <code>request.params.id === "task-002"</code>, puis recherche la tâche dont <code>id</code> vaut <code>"task-002"</code>.</div>
+          <p>Quand on écrira la route <code>GET /tasks/:id</code>, elle devra être placée après la route statique <code>GET /tasks/current</code> : sinon, <code>:id</code> pourrait capturer le mot <code>current</code>. La réponse « identifiant absent » sera traitée dans l’étape suivante ; ici, on teste d’abord un identifiant qui existe.</p>
+          <details><summary>Question de rappel</summary><p>Si la liste contient une tâche avec <code>id: "task-002"</code>, quel objet <code>find()</code> renvoie-t-il quand l’URL est <code>/tasks/task-002</code> ?</p></details>
+          <p class="sources"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find">MDN : Array.prototype.find()</a> · <a href="https://expressjs.com/en/guide/routing/">Express : paramètres de route</a></p>
+        </article>
+      </section>
+
       <section class="section-card searchable" id="prochaines" data-search="prochaines étapes POST JSON body middleware express.json Zod Prisma">
         <div class="section-head">
           <div class="section-number">→</div>
@@ -414,7 +460,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks" `
           </div>
         </div>
         <ul>
-          <li>Express : identifier une tâche précise pour la modifier ou la supprimer en mémoire.</li>
+          <li>Express : modifier puis supprimer une tâche précise en mémoire avec son identifiant.</li>
           <li>Prisma : remplacer progressivement la liste en mémoire par une base de données.</li>
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
