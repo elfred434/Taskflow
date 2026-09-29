@@ -36,10 +36,11 @@ app.patch("/tasks/:id", (request, response) => {
 
     if (!foundTask) {
         response.status(404).json({error: "Tâche introuvable"})
+        return;
     }
-    if (foundTask) {
-        foundTask.status = request.body.status
-    }
+    
+    foundTask.status = request.body.status
+    
     response.json({data: foundTask});
 })
 
