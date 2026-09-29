@@ -586,6 +586,19 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -Con
           <div class="callout"><strong>Le trajet des données :</strong><br>serveur TaskFlow en TypeScript → Prisma Client typé → fichier SQLite <code>dev.db</code><br>Le schéma Prisma décrit la forme voulue ; les migrations créent ou modifient les tables SQLite.</div>
           <details><summary>Question de rappel</summary><p>Après un redémarrage de Node.js, quelle donnée reste disponible : l’ajout dans le tableau <code>tasks</code>, ou une tâche déjà écrite dans le fichier SQLite ?</p></details>
           <details><summary>Qui garde les données : Prisma ou SQLite ?</summary><p>SQLite conserve physiquement les données dans <code>dev.db</code> ; Prisma fournit au code TypeScript une manière typée de décrire le modèle et d’interroger cette base.</p></details>
+          <h3>Les paquets Prisma n’ont pas le même rôle</h3>
+          <ul>
+            <li><code>prisma</code> : commande de développement pour initialiser le schéma et les migrations.</li>
+            <li><code>@prisma/client</code> : bibliothèque utilisée par le serveur TaskFlow pendant son fonctionnement.</li>
+            <li><code>@prisma/adapter-better-sqlite3</code> : relie Prisma Client au fichier SQLite.</li>
+            <li><code>@types/better-sqlite3</code> et <code>dotenv</code> : types TypeScript du pilote et lecture de la configuration locale.</li>
+          </ul>
+          <pre><code>pnpm add -D prisma@7 @types/better-sqlite3
+pnpm add @prisma/client@7 @prisma/adapter-better-sqlite3 dotenv</code></pre>
+          <p><code>-D</code> place les outils de développement dans <code>devDependencies</code> ; les autres paquets sont nécessaires à l’application à l’exécution. TaskFlow possède déjà <code>@types/node</code>, donc inutile de le réinstaller.</p>
+          <h3>Pourquoi pnpm a bloqué les scripts ?</h3>
+          <p>Depuis pnpm 10, les scripts d’installation des dépendances peuvent être bloqués jusqu’à approbation explicite. Les paquets ont bien été ajoutés, mais leurs scripts n’ont pas encore tourné. Dans ce projet, les scripts attendus sont ceux de <code>@prisma/engines</code> et <code>prisma</code> (outils Prisma), ainsi que <code>better-sqlite3</code> (pilote SQLite natif).</p>
+          <p>Avec pnpm 12, <code>pnpm approve-builds</code> enregistre les choix dans <code>pnpm-workspace.yaml</code>, afin que le projet garde une règle explicite sur les scripts autorisés. On approuve seulement les dépendances attendues, jamais tout en bloc.</p>
           <p class="sources"><a href="https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/sqlite">Guide officiel Prisma 7 : SQLite, schéma et migrations</a> · <a href="https://www.prisma.io/docs/orm/coming-from-prisma-orm-7">Documentation Prisma : évolution du flux vers Prisma 8</a></p>
         </article>
       </section>
@@ -600,7 +613,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/tasks/task-002" -Method Patch -Con
         </div>
         <ul>
           <li>Express : opérations CRUD en mémoire testées.</li>
-          <li>Prisma : remplacer progressivement la liste en mémoire par SQLite.</li>
+          <li>Prisma : installer les outils et décrire les tables TaskFlow dans un schéma.</li>
           <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
           <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
         </ul>
