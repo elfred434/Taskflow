@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -30,10 +31,8 @@
     "@prisma/client": "^7.10.0",
     "dotenv": "^18.0.4",
     "express": "5.2.1"
-  },
-  
-  "scripts": {
-    "postinstall": "prisma generate"
   }
+  
+  
   
 }
