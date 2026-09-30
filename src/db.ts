@@ -1,7 +1,11 @@
 import { PrismaClient } from "./generated/prisma/client.js";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 /* récupéré l'url de la base */
-const databaseUrl = process.env["DATABASE_URL"];
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const databaseUrl = `file:${path.join(currentDir, "..", "dev.db")}`;
+
 
 if (!databaseUrl) {
     /* si databas_url manque chaque requête échouera */
