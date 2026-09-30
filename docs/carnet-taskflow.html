@@ -130,10 +130,11 @@
       <p>Les notions étudiées sont reliées à la même API. Utilise la recherche, ouvre les questions de rappel et simule une requête pour réviser activement.</p>
       <div class="hero-meta">
         <span class="pill">Semaine 1 · bases TypeScript terminées</span>
-        <span class="pill">Semaine 2 · Express en cours</span>
-        <span class="pill">Dernière mise à jour : préparer le stockage durable avec SQLite</span>
+        <span class="pill">Semaine 2 · Express terminée</span>
+        <span class="pill">Semaine 3 · Prisma : schéma, client, migrations</span>
+        <span class="pill">Dernière mise à jour : la première migration est créée</span>
       </div>
-      <div class="progress-line" aria-label="Progression du programme"><span></span></div>
+      <div class="progress-line" aria-label="Progression du programme"><span style="width:50%"></span></div>
     </div>
   </header>
 
@@ -156,6 +157,10 @@
           <a href="#patch-task">PATCH · modifier</a>
           <a href="#delete-task">DELETE · supprimer</a>
           <a href="#prisma-stockage">Prisma · stockage durable</a>
+          <a href="#schema-modele">Semaine 3 · le schéma</a>
+          <a href="#client-adapter">Le client et l'adapter</a>
+          <a href="#migrations">Les migrations</a>
+          <a href="#pieges">Pièges rencontrés</a>
           <a href="#prochaines">À venir</a>
         </nav>
         <div class="side-note"><strong>Rituel :</strong> relis une question, réponds sans regarder, puis ouvre la réponse pour vérifier.</div>
@@ -175,10 +180,12 @@
         </div>
         <div class="callout"><strong>À retenir :</strong> le navigateur fait une requête HTTP ; Node exécute le serveur ; Express associe une requête à une route ; TypeScript vérifie les types avant l’exécution.</div>
         <div class="versions" aria-label="Versions retenues et observées">
-          <div class="version"><strong>Node.js</strong><span>24.18.0 sur la machine de l’apprenant ; ligne 24 LTS.</span></div>
+          <div class="version"><strong>Node.js</strong><span>24.18.0 sur la machine de l’apprenant ; ligne 24 LTS, support jusqu’en avril 2028.</span></div>
           <div class="version"><strong>pnpm</strong><span>12.6.0, version épinglée dans le projet.</span></div>
-          <div class="version"><strong>TypeScript</strong><span>7.0.2, compilateur installé en dépendance de développement.</span></div>
+          <div class="version"><strong>TypeScript</strong><span>7.0.2, compilateur natif Go, installé en dépendance de développement.</span></div>
           <div class="version"><strong>Express</strong><span>5.2.1 avec les types Express 5.0.6.</span></div>
+          <div class="version"><strong>Prisma</strong><span>7.10.0 — <em>épinglé</em>, car le tag <code>latest</code> pointe aujourd’hui sur une candidate 8.0.</span></div>
+          <div class="version"><strong>SQLite</strong><span>via <code>@prisma/adapter-better-sqlite3</code> 7.10.0 ; fichier local <code>dev.db</code>.</span></div>
         </div>
         <p class="sources">Les versions et conventions doivent être revérifiées avant d’ajouter un nouvel outil ou une nouvelle commande.</p>
       </section>
@@ -628,21 +635,252 @@ pnpm add @prisma/client@7 @prisma/adapter-better-sqlite3 dotenv</code></pre>
         </article>
       </section>
 
+      <section class="section-card searchable" id="schema-modele" data-search="Semaine 3 schéma Prisma model table String DateTime @id @default uuid unique enum TaskStatus in_progress nullable NOT NULL passwordHash createdAt updatedAt">
+        <div class="section-head">
+          <div class="section-number">13</div>
+          <div>
+            <h2>Semaine 3 · le schéma : décrire les tables</h2>
+            <p class="section-sub">Un seul fichier décrit la forme des données. Prisma en tire le SQL, les types et les requêtes.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="source unique de vérité domain.ts tableau mémoire types écrits à la main doublon">
+          <div class="lesson-top"><h3>Pourquoi un schéma plutôt que des types écrits à la main</h3><span class="tag green">validé</span></div>
+          <p class="why"><strong>Pourquoi :</strong> en semaine 1, la forme des données vivait dans <code>src/domain.ts</code> et le stockage dans un tableau <code>tasks</code> à côté. Deux sources de vérité pour la même information : ajouter un champ obligeait à penser aux deux, et rien ne valait les données à l’exécution.</p>
+          <div class="callout"><strong>Le schéma est la source unique.</strong> À partir de <code>prisma/schema.prisma</code>, Prisma génère le SQL des tables (migrations), les types TypeScript de ces tables, et des fonctions de requête typées. On écrit la forme une fois.</div>
+          <p>Concrètement, <code>src/domain.ts</code> est maintenant doublé : <code>Task</code>, <code>Project</code> et <code>User</code> existent en version générée, dans <code>src/generated/prisma/</code>.</p>
+        </article>
+        <article class="lesson searchable" data-search="model User id String @id @default uuid @unique @default now @updatedAt passwordHash colonne clef primaire">
+          <div class="lesson-top"><h3>Un modèle = une table</h3><span class="tag green">validé</span></div>
+          <pre><code>model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}</code></pre>
+          <div class="callout"><strong>Règle de traduction :</strong> le nom du champ d’abord, le type ensuite — <code>title String</code>, jamais <code>String title</code>. Un champ par ligne, et <strong>pas de virgule</strong> en fin de ligne (contrairement à un objet JavaScript).</div>
+          <ul>
+            <li><code>@id</code> — clef primaire : identifiant unique de la ligne.</li>
+            <li><code>@default(uuid())</code> — Prisma génère un UUID si le client n’en fournit pas. 122 bits d’aléa, donc non devinables. Avec des ids séquentiels (<code>1</code>, <code>2</code>, <code>3</code>), un attaquant énumère <code>/tasks/1</code>, <code>/tasks/2</code>… et lit les ressources des autres. La faille s’appelle <strong>IDOR</strong> (<em>Insecure Direct Object Reference</em>).</li>
+            <li><code>@unique</code> — la base refuse les doublons, pas seulement le code applicatif.</li>
+            <li><code>@default(now())</code> — date de création, posée par le serveur de base.</li>
+            <li><code>@updatedAt</code> — Prisma met à jour ce champ tout seul à chaque écriture.</li>
+          </ul>
+          <details><summary>Question de rappel</summary><p>Pourquoi <code>@unique</code> sur <code>email</code> est-il plus fort qu’une vérification faite dans le code TypeScript avant d’enregistrer ?</p></details>
+        </article>
+        <article class="lesson searchable" data-search="enum TaskStatus todo in_progress done tiret interdit identifiant @default todo validation Prisma Client SQLite TEXT CHECK">
+          <div class="lesson-top"><h3>L'enum : limiter les valeurs, mais jusqu'où ?</h3><span class="tag amber">nuance importante</span></div>
+          <p class="why"><strong>Pourquoi :</strong> en semaine 1, <code>type TaskStatus = "todo" | "in-progress" | "done"</code> interdisait les fautes de frappe à la compilation. L’enum Prisma est l’équivalent pour la base.</p>
+          <pre><code>enum TaskStatus {
+  todo
+  in_progress
+  done
+}
+
+model Task {
+  id        String     @id @default(uuid())
+  title     String
+  projectId String
+  status    TaskStatus @default(todo)
+}</code></pre>
+          <div class="callout warn"><strong>Le tiret est interdit.</strong> La union d’origine était <code>"in-progress"</code>. Un enum Prisma est un identifiant : le tiret n’y est pas autorisé, d’où <code>in_progress</code>. C’est la seule adaptation nécessaire.</div>
+          <div class="callout warn"><strong>L'enum ne protège PAS la base.</strong> Le SQL généré est <code>"status" TEXT NOT NULL DEFAULT 'todo'</code> — du texte brut, <em>sans contrainte CHECK</em>. SQLite ne connaît pas les enums. Testé : en forçant une valeur invalide, c’est <strong>Prisma Client</strong> qui refuse (<code>Invalid prisma.task.create() invocation</code>), pas la base. Un script SQL brut ou un autre outil pourrait écrire <code>"finished"</code> sans erreur.</div>
+          <p>Conséquence directe pour la suite : la validation des données qui entrent par HTTP devra se faire à la frontière, avec Zod, en semaine 4. Se fier au type ne suffit pas.</p>
+          <details><summary>Question de rappel</summary><p>Qui refuse une valeur d’enum invalide : la base SQLite, Prisma Client, ou TypeScript ? Les trois, deux, un seul ?</p></details>
+        </article>
+        <article class="lesson searchable" data-search="nullable String? null propriété obligatoire valeur nullable différence TypeScript optional">
+          <div class="lesson-top"><h3>Le ? ne veut pas dire « optionnel »</h3><span class="tag amber">piège de traduction</span></div>
+          <p class="why"><strong>Pourquoi :</strong> en TypeScript, <code>prop?: string</code> signifie que la propriété peut être absente de l’objet. En Prisma, <code>String?</code> signifie autre chose.</p>
+          <pre><code>// Schéma Prisma
+passwordHash String?
+
+// Type généré
+passwwordHash: string | null   // propriété TOUJOURS présente, valeur nullable
+
+// Ce n'est PAS ça :
+passwwordHash?: string         // propriété qui peut manquer</code></pre>
+          <div class="callout"><strong>Côté base :</strong> sans <code>?</code>, la colonne est <code>NOT NULL</code> et la base refuse d’enregistrer une ligne sans valeur. Avec <code>?</code>, la colonne est nullable et la base accepte. Le test à écrire est donc <code>if (user.passwordHash === null)</code>, jamais <code>if (!("passwordHash" in user))</code>.</div>
+          <div class="callout"><strong>Pourquoi <code>passwordHash</code> est obligatoire :</strong> un utilisateur sans mot de passe est un compte ouvert. Et ajouter plus tard une colonne <code>NOT NULL</code> à une table déjà peuplée est refusé par SQLite faute de valeur par défaut — mieux vaut la déclarer dès le début.</div>
+        </article>
+        <article class="lesson searchable" data-search="généré enums const objet as const type dérivé erasableSyntaxOnly Prisma generate src generated prisma">
+          <div class="lesson-top"><h3>Ce que Prisma génère à partir de 3 lignes</h3><span class="tag green">validé</span></div>
+          <pre><code>// src/generated/prisma/enums.ts — généré, ne pas modifier
+export const TaskStatus = {
+  todo: 'todo',
+  in_progress: 'in_progress',
+  done: 'done'
+} as const
+
+export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus]</code></pre>
+          <p>Un <strong>objet runtime</strong> (<code>TaskStatus.todo</code> vaut <code>'todo'</code>, utilisable dans le code) et un <strong>type</strong> dérivé de cet objet. Une source, deux vues — le même motif que <code>ApiResponse&lt;T&gt;</code>, sauf que la source est le schéma.</p>
+          <div class="callout"><strong>Remarque :</strong> Prisma n’a pas généré un <code>enum</code> TypeScript, mais un <code>const</code> objet. C’est la forme moderne, compatible avec l’exécution directe par Node (<code>erasableSyntaxOnly</code> interdit les <code>enum</code>).</div>
+          <h3>La commande de génération</h3>
+          <pre><code>pnpm exec prisma generate</code></pre>
+          <p>À relancer <strong>à chaque modification du schéma</strong>. Le dossier <code>src/generated/prisma/</code> est dans <code>.gitignore</code> : il n’est pas versionné, il est recréé. Pour ne jamais l’oublier après une installation, un script <code>postinstall</code> dans <code>package.json</code> l’automatise.</p>
+          <details><summary>Question de rappel</summary><p>Tu modifies <code>schema.prisma</code> puis tu écris du code qui utilise le nouveau champ. Le compilateur dit « propriété inexistante ». Quelle commande as-tu oubliée ?</p></details>
+        </article>
+      </section>
+
+      <section class="section-card searchable" id="client-adapter" data-search="client adapter PrismaBetterSqlite3 db.ts singleton pool connexions import meta url chemin absolu CWD extension js NodeNext">
+        <div class="section-head">
+          <div class="section-number">14</div>
+          <div>
+            <h2>Le client et l'adapter</h2>
+            <p class="section-sub">Un schéma ne sait pas parler à une base. Il faut une connexion et une interface typée.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="Prisma 7 moteur Rust supprimé driver adapter obligatoire pont better-sqlite3 fichier dev.db">
+          <div class="lesson-top"><h3>Pourquoi un adapter est obligatoire en Prisma 7</h3><span class="tag green">validé</span></div>
+          <p class="why"><strong>Pourquoi :</strong> en Prisma 6 et avant, un moteur écrit en Rust faisait le lien entre le client et la base. En Prisma 7, ce moteur a été supprimé et remplacé par du TypeScript compilé en WebAssembly. Conséquence mécanique : <strong>tu dois fournir toi-même le pilote</strong>.</p>
+          <div class="callout"><strong>Le trajet :</strong><br>ton code → <code>PrismaClient</code> (interface typée) → <code>PrismaBetterSqlite3</code> (l’adapter) → <code>better-sqlite3</code> (le pilote) → fichier <code>dev.db</code><br>Sans l’adapter, <code>new PrismaClient()</code> ne sait pas où écrire.</div>
+        </article>
+        <article class="lesson searchable" data-search="db.ts PrismaClient adapter export singleton pool connexions nouvelle instance par requête">
+          <div class="lesson-top"><h3>Un seul client, partagé</h3><span class="tag green">validé</span></div>
+          <pre><code>// src/db.ts
+import { PrismaClient } from "./generated/prisma/client.js";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const databaseUrl = `file:${path.join(currentDir, "..", "dev.db")}`;
+
+const adapter = new PrismaBetterSqlite3({ url: databaseUrl });
+
+export const prisma = new PrismaClient({ adapter });</code></pre>
+          <div class="callout"><strong>Pourquoi un fichier séparé :</strong> <code>PrismaClient</code> ouvre un <em>pool</em> de connexions. En créer un par requête épuiserait la base. Un module partagé = une seule instance, créée au démarrage. C’est le motif <strong>singleton</strong>.</div>
+          <div class="callout"><strong>Pourquoi <code>.js</code> et pas <code>.ts</code> dans l’import :</strong> on compile avec <code>tsc</code> (option A). À l’exécution, Node charge <code>dist/db.js</code>, et l’import doit pointer vers un fichier qui existe <em>à ce moment-là</em>. En option B (Node exécute le <code>.ts</code> directement), il faudrait écrire <code>./db.ts</code> — Node résout les imports littéralement et ne trouverait pas de <code>db.js</code>.</div>
+        </article>
+        <article class="lesson searchable" data-search="chemin relatif file:./dev.db CWD deux bases dev.db piège import.meta.url absolu testé">
+          <div class="lesson-top"><h3>Le piège du chemin relatif</h3><span class="tag amber">vérifié par test</span></div>
+          <p class="why"><strong>Pourquoi :</strong> <code>DATABASE_URL="file:./dev.db"</code> contient un chemin relatif. Or <code>better-sqlite3</code> le résout par rapport au <strong>dossier courant</strong> (le CWD), pas par rapport au projet.</p>
+          <div class="callout warn"><strong>Test effectué :</strong> le même serveur, lancé depuis deux dossiers différents.<br>Depuis la racine du projet → <code>{"data":[]}</code> — la base migrée est trouvée.<br>Depuis <code>/tmp</code> → <em>« The table main.Task does not exist »</em> — un second fichier <code>dev.db</code> vide avait été créé dans <code>/tmp</code>.</div>
+          <p>Le correctif est <code>import.meta.url</code>, qui donne l’emplacement réel du module en cours, indépendamment du dossier de lancement. C’est la seule façon fiable en ESM de savoir « où je suis ».</p>
+          <div class="callout"><strong>Reste à savoir :</strong> le CLI Prisma, lui, lit <code>DATABASE_URL</code> depuis <code>.env</code> et résout ce chemin par rapport au CWD. Les deux composants ne résolvent donc pas le même chemin par le même mécanisme. Aujourd’hui le CLI échoue bruyamment s’il est lancé depuis le mauvais dossier (<code>PrismaConfigEnvError</code>), ce qui protège. Mais deux résolutions différentes finissent toujours par diverger un jour.</div>
+          <details><summary>Question de rappel</summary><p>Tu lances <code>node dist/server.js</code> depuis un sous-dossier du projet. Que risque-t-il de se passer, et quelle ligne de <code>db.ts</code> l’empêche ?</p></details>
+        </article>
+        <article class="lesson searchable" data-search="première requête findMany await async route Express GET tasks data tableau vide">
+          <div class="lesson-top"><h3>La première requête typée</h3><span class="tag green">validé</span></div>
+          <pre><code>app.get("/tasks", async (_request, response) => {
+  const tasks = await prisma.task.findMany();
+  response.json({ data: tasks });
+});</code></pre>
+          <div class="callout"><strong>Pourquoi <code>async</code> / <code>await</code> :</strong> une requête base de données est une opération asynchrone. Sans <code>await</code>, on récupère une <code>Promise</code> et non les données — et <code>response.json</code> sérialiserait un objet <code>Promise</code> vide.</div>
+          <div class="callout"><strong>Pourquoi <code>{"data":[]}</code> et pas une erreur :</strong> le tableau est vide parce que la base est vide. L’API dit enfin la vérité : les deux tâches affichées en semaine 2 étaient codées en dur dans le fichier source. Une API qui renvoie des données inventées est plus dangereuse qu’une API qui renvoie une liste vide.</div>
+        </article>
+      </section>
+
+      <section class="section-card searchable" id="migrations" data-search="migration migrate dev db push recette gâteau SQL migration_lock prisma migrations versionné donnée perdue">
+        <div class="section-head">
+          <div class="section-number">15</div>
+          <div>
+            <h2>Les migrations</h2>
+            <p class="section-sub">Le schéma est une intention. La base est la réalité. La migration est le pont.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="table does not exist schéma intention base réalité migration appliquer SQL CREATE TABLE">
+          <div class="lesson-top"><h3>L'erreur « The table does not exist »</h3><span class="tag amber">erreur de départ</span></div>
+          <p class="why"><strong>Pourquoi :</strong> le schéma <em>déclare</em> une table <code>Task</code>. La base <code>dev.db</code> était un fichier vide. Prisma Client croit le schéma, envoie <code>SELECT … FROM Task</code>, et la base répond qu’elle ne connaît pas cette table.</p>
+          <div class="callout"><strong>Message réel obtenu :</strong><br><code>PrismaClientKnownRequestError: Invalid prisma.task.findMany() invocation: The table main.Task does not exist in the current database.</code></div>
+          <p>C’est l’erreur la plus courante chez les débutants Prisma, et elle a une cause unique : on a écrit le schéma, on a oublié de l’appliquer.</p>
+        </article>
+        <article class="lesson searchable" data-search="prisma migrate dev name init dossier horodaté migration.sql CREATE TABLE CreateIndex versionné git">
+          <div class="lesson-top"><h3>La commande</h3><span class="tag green">validé</span></div>
+          <pre><code>pnpm exec prisma migrate dev --name init</code></pre>
+          <ul>
+            <li><code>migrate dev</code> — compare le schéma à la base, génère le SQL manquant, l’applique.</li>
+            <li><code>--name init</code> — nomme la migration ; le nom devient un dossier horodaté.</li>
+          </ul>
+          <p>Elle produit notamment <code>prisma/migrations/20260929203922_init/migration.sql</code>, puis relance <code>prisma generate</code> automatiquement.</p>
+          <div class="callout warn"><strong>Le nom décrit le changement, pas le projet.</strong> Ajouter une colonne <code>description</code> donne <code>--name add_task_description</code>. Réutiliser <code>init</code> produirait deux dossiers nommés <code>init</code>, et personne ne saurait plus lequel fait quoi.</div>
+        </article>
+        <article class="lesson searchable" data-search="migrate dev vs db push écrase silencieusement perte de données shadow database prototype">
+          <div class="lesson-top"><h3>migrate dev ou db push ?</h3><span class="tag amber">à ne pas confondre</span></div>
+          <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));display:grid;gap:10px">
+            <div class="version"><strong>migrate dev</strong><span>Crée un fichier de migration, versionné, avec un historique ordonné. Demande confirmation en cas de perte de données.</span></div>
+            <div class="version"><strong>db push</strong><span>Aucun fichier, aucun historique. Écrase la base pour la faire coller au schéma, parfois silencieusement.</span></div>
+          </div>
+          <div class="callout"><strong>Toujours <code>migrate dev</code>.</strong> <code>db push</code> est un raccourci pour un prototype ou une base jetable. Dans un projet, il fait diverger les bases de chaque machine sans laisser de trace.</div>
+        </article>
+        <article class="lesson searchable" data-search="recette gâteau migrations versionnées dev.db gitignore données locales artefact binaire">
+          <div class="lesson-top"><h3>Pourquoi versionner les migrations et pas dev.db</h3><span class="tag green">validé</span></div>
+          <p class="why"><strong>Pourquoi :</strong> les deux viennent de la même commande, mais ils n’ont pas la même nature.</p>
+          <div class="callout"><strong>Les migrations, c’est la recette.</strong> Du SQL texte, portable, lisible, qui fonctionne sur n’importe quelle machine. C’est du code.<br><strong>dev.db, c’est le gâteau.</strong> Un fichier binaire contenant l’état de la base locale, avec les données de test de chacun. C’est un artefact local.</div>
+          <p>On versionne la recette pour que n’importe qui puisse reconstruire le même gâteau. On ne versionne pas le gâteau : il écraserait celui des autres à chaque <code>pull</code>, et il ne contient aucune information que la recette ne puisse reproduire.</p>
+          <div class="callout warn"><strong>Erreur réellement commise :</strong> <code>dev.db</code> a été commité une fois. Il a fallu le retirer du suivi (<code>git rm --cached dev.db</code>) et ajouter <code>*.db</code> au <code>.gitignore</code>.</div>
+          <p>Autre différence décisive : les migrations sont <strong>ordonnées et historiques</strong>. Cette chronologie <em>est</em> l’information. Un fichier <code>.db</code> est un instantané sans mémoire.</p>
+        </article>
+        <article class="lesson searchable" data-search="données existantes conserve nullable colonne ajoutée NOT NULL ALTER TABLE SQLite refuse">
+          <div class="lesson-top"><h3>Que deviennent les données existantes ?</h3><span class="tag green">validé</span></div>
+          <p class="why"><strong>Pourquoi :</strong> c’est la question à se poser avant chaque migration sur une base qui contient déjà des lignes.</p>
+          <div class="callout"><strong>Réponse : <code>migrate dev</code> conserve les données.</strong> Ajouter <code>description String?</code> à <code>Task</code> attribue <code>NULL</code> aux lignes déjà présentes, parce que la colonne est nullable.</div>
+          <div class="callout warn"><strong>Le contraste qui compte :</strong> avec <code>description String</code> (sans <code>?</code>), SQLite <em>refuserait</em> d’ajouter la colonne à une table peuplée, faute de valeur par défaut. C’est exactement le raisonnement qui avait fait déclarer <code>passwordHash</code> dès le début plutôt qu’en semaine 4.</div>
+          <details><summary>Question de rappel</summary><p>Tu ajoutes <code>priority Int</code> sans <code>?</code> et sans <code>@default</code> à une table qui contient 500 tâches. Que fait la migration ?</p></details>
+        </article>
+      </section>
+
+      <section class="section-card searchable" id="pieges" data-search="pièges bugs faute de frappe passwwordHash clé JSON dupliquée scripts package.json app.listen commenté code mort">
+        <div class="section-head">
+          <div class="section-number">16</div>
+          <div>
+            <h2>Pièges rencontrés en route</h2>
+            <p class="section-sub">Quatre erreurs réelles, toutes passées sans erreur de compilation. Le point commun : « ça compile » ne veut pas dire « c'est juste ».</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="passwwordHash faute de frappe trois p colonne mal nommée silencieuse TypeScript généré à partir de l'erreur">
+          <div class="lesson-top"><h3>1. La faute de frappe dans le schéma</h3><span class="tag amber">silencieuse</span></div>
+          <p class="why"><strong>Ce qui s’est passé :</strong> <code>passwwordHash</code> — trois <code>p</code>. Prisma a accepté, et a généré une colonne et un type portant le même nom.</p>
+          <pre><code>// SQL généré
+"passwwordHash" TEXT,
+
+// Type généré
+passwwordHash: string | null</code></pre>
+          <div class="callout warn"><strong>Aucune erreur, aucun avertissement.</strong> TypeScript vérifie la cohérence, pas l’orthographe. Le bug serait apparu en semaine 4, quand <code>user.passwordHash</code> aurait été déclaré « propriété inexistante » — sans expliquer pourquoi.</div>
+          <p><strong>Leçon :</strong> dans un schéma, une faute de frappe n’est pas une erreur de compilation, c’est une colonne mal nommée.</p>
+        </article>
+        <article class="lesson searchable" data-search="deux clés scripts package.json JSON doublon dernière gagne test disparu pnpm run silencieux">
+          <div class="lesson-top"><h3>2. Deux clés « scripts » dans package.json</h3><span class="tag amber">silencieuse</span></div>
+          <p class="why"><strong>Ce qui s’est passé :</strong> un second bloc <code>"scripts"</code> a été ajouté au lieu de compléter le premier.</p>
+          <pre><code>// Mesuré avec Node
+require('./package.json').scripts
+// → { postinstall: 'prisma generate' }     « test » a DISPARU</code></pre>
+          <div class="callout warn"><strong>Le JSON autorise les clés dupliquées, et la dernière gagne.</strong> Le fichier reste valide, aucune erreur. Mais <code>pnpm run</code> ne listait plus aucun script utilisateur, et <code>pnpm test</code> aurait échoué avec <code>ERR_PNPM_NO_SCRIPT</code>.</div>
+          <p><strong>Leçon :</strong> même famille de piège que la faute de frappe. Le fichier est syntaxiquement correct, donc aucun outil ne le signale.</p>
+        </article>
+        <article class="lesson searchable" data-search="app.listen commenté serveur ne démarre pas exit 0 aucun port curl échoue">
+          <div class="lesson-top"><h3>3. app.listen commenté</h3><span class="tag amber">bloquant</span></div>
+          <p class="why"><strong>Ce qui s’est passé :</strong> en migrant les routes vers Prisma, la ligne <code>app.listen(3000, …)</code> a été mise en commentaire avec le reste de l’ancien code.</p>
+          <div class="callout warn"><strong>Symptôme :</strong> <code>node dist/server.js</code> → exit 0, aucune sortie, aucun port ouvert. Express monte l’application en mémoire puis le processus sort. Le <code>curl</code> échoue sans message utile.</div>
+          <p><strong>Leçon :</strong> <code>app.listen</code> est l’interrupteur. Sans lui, tout le reste du code est inerte.</p>
+        </article>
+        <article class="lesson searchable" data-search="code mort if databaseUrl template literal toujours vrai garde-fou inutile fausse sécurité">
+          <div class="lesson-top"><h3>4. Le garde-fou devenu code mort</h3><span class="tag amber">à surveiller</span></div>
+          <p class="why"><strong>Ce qui s’est passé :</strong> en corrigeant le chemin relatif, la variable est devenue un template literal calculé. La vérification <code>if (!databaseUrl)</code> restée en place ne peut plus jamais être vraie.</p>
+          <pre><code>const databaseUrl = `file:${path.join(currentDir, "..", "dev.db")}`;
+if (!databaseUrl) { throw new Error("…") }   // !databaseUrl vaut toujours false</code></pre>
+          <div class="callout warn"><strong>Un garde-fou qui ne peut pas se déclencher donne une fausse impression de sécurité.</strong> Il protège d’un risque qui n’existe plus.</div>
+          <p><strong>Leçon :</strong> quand on déplace une vérification, il faut se demander si la condition qu’elle teste existe encore.</p>
+        </article>
+      </section>
+
       <section class="section-card searchable" id="prochaines" data-search="prochaines étapes POST JSON body middleware express.json Zod Prisma">
         <div class="section-head">
           <div class="section-number">→</div>
           <div>
             <h2>Prochaines briques</h2>
-            <p class="section-sub">On ajoutera les notions au carnet au fur et à mesure qu’elles seront enseignées et vérifiées.</p>
+            <p class="section-sub">Les notions déjà enseignées sont dans le carnet ; voici ce qui vient.</p>
           </div>
         </div>
         <ul>
-          <li>Express : opérations CRUD en mémoire testées.</li>
-          <li>Prisma : décrire le modèle Task dans le schéma, puis créer une migration SQLite.</li>
-          <li>Authentification et Zod : valider les données non fiables au moment où elles entrent dans l’API.</li>
-          <li>Permissions, tests, documentation et déploiement : selon le programme convenu.</li>
+          <li><strong>Semaine 3, en cours :</strong> réécrire <code>GET /tasks/:id</code>, <code>POST /tasks</code>, <code>PATCH /tasks/:id</code> et <code>DELETE /tasks/:id</code> avec Prisma, puis supprimer le vieux code en mémoire.</li>
+          <li><strong>Semaine 3, à venir :</strong> les relations — un projet appartient à un utilisateur, une tâche appartient à un projet. C’est là que les types avancés deviennent nécessaires.</li>
+          <li><strong>Semaine 4 :</strong> authentification et validation — JWT, middlewares d’auth, Zod pour les données qui entrent par HTTP, gestion d’erreurs typée.</li>
+          <li><strong>Semaine 5 :</strong> équipes, rôles et permissions — relations many-to-many.</li>
+          <li><strong>Semaine 6 :</strong> tests avec Vitest, documentation de l’API, Docker et déploiement.</li>
         </ul>
-        <div class="callout"><strong>État de TaskFlow :</strong> les routes <code>GET /tasks</code>, <code>GET /tasks/current</code>, <code>GET /tasks/:id</code> (avec réponse 404 si absent), <code>POST /tasks</code>, <code>PATCH /tasks/:id</code>, <code>DELETE /tasks/:id</code> et <code>GET /projects/current</code>, ainsi que le middleware JSON et le journal de requêtes, sont maintenant sur <code>main</code>.</div>
+        <div class="callout"><strong>État de TaskFlow :</strong> le schéma Prisma décrit <code>User</code>, <code>Project</code> et <code>Task</code> ; la première migration est créée ; le client est branché sur SQLite dans <code>src/db.ts</code> ; <code>GET /tasks</code> lit depuis la base. Les autres routes sont encore à migrer.</div>
+        <div class="callout"><strong>Rituel de révision :</strong> ouvre une section au hasard, lis une question de rappel, réponds sans regarder le code, puis vérifie. Les sections « Pièges rencontrés » sont les plus utiles à relire.</div>
       </section>
     </main>
   </div>
