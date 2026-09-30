@@ -7,11 +7,11 @@ const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const databaseUrl = `file:${path.join(currentDir, "..", "dev.db")}`;
 
 
-if (!databaseUrl) {
-    /* si databas_url manque chaque requête échouera */
+// if (!databaseUrl) {
+//     /* si databas_url manque chaque requête échouera */
     
-    throw new Error("DATABASE_URL est absents: copie .env.example en .env")
-}
+//     throw new Error("DATABASE_URL est absents: copie .env.example en .env")
+// }
 
 const adapter = new PrismaBetterSqlite3({
     url: databaseUrl
