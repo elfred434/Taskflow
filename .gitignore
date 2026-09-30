@@ -4,3 +4,7 @@ dist/
 .env.*
 !.env.example
 /src/generated/prisma
+
+# Fichiers de la base SQLite locale : donnees, pas code.
+*.db
+*.db-journal
