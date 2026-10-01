@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 // import { currentTaskResponse, tasksResponse, currentProjectResponse, tasks } from "./domain.js";
 import {prisma} from "./db.js"
+import { Prisma } from "./generated/prisma/client.js";
 
 
 const app = express();
@@ -48,18 +49,22 @@ app.post("/tasks", async (request, response) => {
 
 /*modifier une tâche avec prisma*/
 app.patch("/tasks/:id", async (request, response) =>{
+
+    try{
     const updatedTask = await prisma.task.update({
         where: {id: request.params.id},
         data : {status: request.body.status}
     });
     
-    if (!updatedTask) {
-        response.status(404).json({error: "Taches introuvables"});
-        return; 
-    }
     response.json({data: updatedTask})
-
-})
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025"){
+            response.status(404).json({error: "Tâches introuvables"})
+            return;
+        }
+        throw error;
+    }
+});
 
 
 // /* modifier une tâche sans renvoyez toutes ses proprietés */
@@ -82,7 +87,7 @@ app.patch("/tasks/:id", async (request, response) =>{
 /* supprimer une tâche avec prisma */
 app.delete("/tasks/:id", async (request, response) => {
     const deleteTask = await prisma.task.delete({
-        where: {id: request.body.id}
+        where: {id: request.params.id}
     })
     if (!deleteTask) {
         response.status(404).json({error: "Taches introuvables"});
