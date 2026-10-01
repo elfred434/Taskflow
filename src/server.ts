@@ -14,7 +14,19 @@ app.use((request, _response, next) =>{
 });
 
 app.get("/tasks", async (_request, response) =>{
-    const tasks = await prisma.task.findMany();
+    const tasks = await prisma.task.findMany({
+        select: {
+            id: true,
+            title: true,
+            status: true,
+            project: {
+                select: {
+                    id: true,
+                    name: true,
+                }
+            }
+        }
+    });
     response.json({data: tasks});
 });
 
@@ -50,6 +62,17 @@ app.post("/tasks", async (request, response) => {
             title: request.body.title,
             status: request.body.status,
             projectId: request.body.projectId
+        },
+        select: {
+            id: true,
+            title: true,
+            status: true,
+            project: {
+                select: {
+                    id: true,
+                    name: true,
+                }
+            }
         }
     });
     response.status(201).json(createTask)
@@ -82,7 +105,18 @@ app.patch("/tasks/:id", async (request, response) =>{
     try{
     const updatedTask = await prisma.task.update({
         where: {id: request.params.id},
-        data : {status: request.body.status}
+        data : {status: request.body.status},
+        select: {
+            id: true,
+            title: true,
+            status: true,
+            project: {
+                select: {
+                    id: true,
+                    name: true,
+                }
+            }
+        }
     });
     
     response.json({data: updatedTask})
@@ -118,7 +152,11 @@ app.delete("/tasks/:id", async (request, response) => {
 
     try {
          const deleteTask = await prisma.task.delete({
-        where: {id: request.params.id}
+         where: {id: request.params.id},
+         select: {
+            id: true,
+            title: true,
+         }
     })
     
     response.json(deleteTask)
