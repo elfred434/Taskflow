@@ -3,7 +3,11 @@ import express from "express";
 // import { currentTaskResponse, tasksResponse, currentProjectResponse, tasks } from "./domain.js";
 import { prisma } from "./db.js"
 import { Prisma } from "./generated/prisma/client.js";
+import { z } from "zod";
 
+const createTaskSchema= z.object({
+    title: z.string(),
+});
 
 const app = express();
 app.use(express.json());

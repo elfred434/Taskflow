@@ -17,11 +17,11 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "12.6.0",
+      "version": "12.8.1",
       "onFail": "download"
     }
   },
-  "packageManager": "pnpm@12.6.0",
+  "packageManager": "pnpm@12.8.1",
   "type": "module",
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",
@@ -34,9 +34,7 @@
     "@prisma/adapter-better-sqlite3": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "dotenv": "^18.0.4",
-    "express": "5.2.1"
+    "express": "5.2.1",
+    "zod": "4.6.5"
   }
-  
-  
-  
 }
