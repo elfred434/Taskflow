@@ -23,7 +23,17 @@ app.get("/tasks/:id", async (request, response) =>{
 
     const foundTask = await prisma.task.findUnique({
         where: {id: request.params.id},
-        include: {project: true}
+        select: {
+            id: true,
+            title: true,
+            status: true,
+            project: {
+                select: {
+                    id: true,
+                    name: true,
+                }
+            }
+        }
     });
     if (!foundTask) {
         response.status(404).json({error: "Taches introuvables"});
