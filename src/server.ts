@@ -86,14 +86,23 @@ app.patch("/tasks/:id", async (request, response) =>{
 
 /* supprimer une tâche avec prisma */
 app.delete("/tasks/:id", async (request, response) => {
-    const deleteTask = await prisma.task.delete({
+
+    try {
+         const deleteTask = await prisma.task.delete({
         where: {id: request.params.id}
     })
-    if (!deleteTask) {
-        response.status(404).json({error: "Taches introuvables"});
-        return; 
-    }
+    
     response.json(deleteTask)
+        
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+            response.status(404).json({error: "Tâches introuvables"})
+            return;
+        }
+        throw error;
+        
+    }
+   
 
 })
 
@@ -143,7 +152,4 @@ app.listen(3000, () => {
 
 // app.get("/projects/current", (_request, response) => {
 //     response.json(currentProjectResponse)
-// })
-// app.listen(3000, () => {
-//     console.log("TaskFlow écoute sur le port 3000")
 // })
