@@ -131,10 +131,11 @@
       <div class="hero-meta">
         <span class="pill">Semaine 1 · bases TypeScript terminées</span>
         <span class="pill">Semaine 2 · Express terminée</span>
-        <span class="pill">Semaine 3 · Prisma : schéma, client, migrations</span>
-        <span class="pill">Dernière mise à jour : la première migration est créée</span>
+        <span class="pill">Semaine 3 · Prisma terminée</span>
+        <span class="pill">Semaine 5 (avancée) · relations + select terminés</span>
+        <span class="pill">Dernière mise à jour : les 5 routes sont typées et filtrées</span>
       </div>
-      <div class="progress-line" aria-label="Progression du programme"><span style="width:50%"></span></div>
+      <div class="progress-line" aria-label="Progression du programme"><span style="width:62%"></span></div>
     </div>
   </header>
 
@@ -160,6 +161,8 @@
           <a href="#schema-modele">Semaine 3 · le schéma</a>
           <a href="#client-adapter">Le client et l'adapter</a>
           <a href="#migrations">Les migrations</a>
+          <a href="#relations">Les relations</a>
+          <a href="#select">Choisir les champs</a>
           <a href="#pieges">Pièges rencontrés</a>
           <a href="#prochaines">À venir</a>
         </nav>
@@ -862,6 +865,167 @@ if (!databaseUrl) { throw new Error("…") }   // !databaseUrl vaut toujours fal
           <div class="callout warn"><strong>Un garde-fou qui ne peut pas se déclencher donne une fausse impression de sécurité.</strong> Il protège d’un risque qui n’existe plus.</div>
           <p><strong>Leçon :</strong> quand on déplace une vérification, il faut se demander si la condition qu’elle teste existe encore.</p>
         </article>
+        <article class="lesson searchable" data-search="curl Windows PowerShell backtick antislash continuation ligne guillemets doubles curl.exe JSON échappé">
+          <div class="lesson-top"><h3>5. Tester sous Windows : le piège de <code>curl</code></h3><span class="tag amber">pratique</span></div>
+          <p class="why"><strong>Ce qui s’est passé :</strong> une commande <code>curl</code> copiée depuis ce carnet a échoué sous PowerShell, avec deux erreurs qui n’avaient rien à voir avec le code de l’API.</p>
+          <pre><code>curl: (6) Could not resolve host: application
+TypeError: Cannot read properties of undefined (reading 'title')</code></pre>
+          <div class="callout warn"><strong>Deux causes, toutes les deux propres à Windows :</strong><br>
+          1. <strong>La continuation de ligne.</strong> Dans bash c’est l’antislash <code>\</code>. Dans PowerShell c’est le <strong>backtick</strong> <code>`</code>. L’antislash est pris littéralement, et la commande est coupée au mauvais endroit.<br>
+          2. <strong>Les guillemets simples.</strong> PowerShell ne les traite pas comme bash. Le JSON s’est fait découper, et <code>curl</code> a pris <code>application</code> pour un nom d’hôte.</div>
+          <p>La seconde erreur est une conséquence de la première : le corps de la requête n’ayant jamais été envoyé, <code>request.body</code> valait <code>undefined</code>.</p>
+          <h3>La commande qui marche, sur une seule ligne</h3>
+          <pre><code>curl.exe -X POST localhost:3000/tasks -H "Content-Type: application/json" -d "{\"title\":\"Maquette\",\"projectId\":\"fantome\"}"</code></pre>
+          <p>Trois différences : <code>curl.exe</code> (le vrai curl livré avec Windows 10+), guillemets <strong>doubles</strong> partout, et <code>\"</code> pour échapper les guillemets du JSON.</p>
+          <div class="callout"><strong>Leçon générale :</strong> quand un test échoue avec une erreur qui semble absurde, soupçonner d’abord la <em>commande de test</em> avant de suspecter le code. Une grande partie des « bugs » de ce projet étaient en fait des commandes mal tapées.</div>
+        </article>
+      </section>
+
+      <section class="section-card searchable" id="relations" data-search="relations clé étrangère @relation fields references Project[] Task[] owner ownerId projectId P2003 RESTRICT CASCADE ON DELETE orpheline">
+        <div class="section-head">
+          <div class="section-number">17</div>
+          <div>
+            <h2>Les relations entre les tables</h2>
+            <p class="section-sub">Un champ texte est une convention. Une relation est une contrainte que la base fait respecter.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="projectId chaîne libre tâche orpheline projet inexistant testé HTTP 201 base accepte">
+          <div class="lesson-top"><h3>Le problème : la tâche orpheline</h3><span class="tag amber">vérifié par test</span></div>
+          <p class="why"><strong>Pourquoi :</strong> avant les relations, <code>projectId</code> était un simple <code>String</code>. Rien dans la base ne le reliait à la table <code>Project</code>.</p>
+          <div class="callout warn"><strong>Test effectué :</strong> créer une tâche avec <code>"projectId":"projet-qui-nexiste-pas"</code>.<br>Résultat : <code>HTTP 201</code> — la tâche est créée, et vérifié ensuite en base : elle est bien là, pointant vers un projet fantôme.</div>
+          <p>Le type TypeScript <em>croyait</em> que <code>projectId</code> désignait un projet. La base, elle, stockait du texte. C'est le même problème que l'enum : <strong>le type dit une chose, la base ne l'impose pas.</strong></p>
+        </article>
+        <article class="lesson searchable" data-search="deux champs scalaire ownerId champ de relation owner @relation fields references bras tableau Project[]">
+          <div class="lesson-top"><h3>Une relation, c'est deux champs</h3><span class="tag green">validé</span></div>
+          <pre><code>model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  projects     Project[]        // le bras « plusieurs »
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String               // le scalaire : la colonne réelle
+  owner     User     @relation(fields: [ownerId], references: [id])
+  //                                 ↑ le champ de relation : le lien virtuel
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tasks     Task[]
+}</code></pre>
+          <ul>
+            <li><strong>Le scalaire</strong> (<code>ownerId String</code>) est la donnée stockée en base.</li>
+            <li><strong>Le champ de relation</strong> (<code>owner User</code>) n'est <em>pas</em> une colonne : c'est un lien virtuel que Prisma matérialise quand on le demande.</li>
+            <li><code>@relation</code> est le pont : <code>fields: [ownerId]</code> = « la colonne est chez moi », <code>references: [id]</code> = « elle pointe vers <code>id</code> chez l'autre ».</li>
+            <li><strong>L'autre côté est un tableau</strong> (<code>Project[]</code>), parce qu'un utilisateur a plusieurs projets. Les deux côtés doivent être déclarés.</li>
+          </ul>
+          <div class="callout"><strong>Pourquoi <code>ownerId</code> existait déjà :</strong> <code>fields: [ownerId]</code> ne crée <em>pas</em> la colonne, il la <em>désigne</em>. Si elle n'existait pas, Prisma annoncerait « champ inconnu ». Déclarer <code>ownerId String</code> dès le début n'était donc pas provisoire : c'était la moitié scalaire de la relation.</div>
+        </article>
+        <article class="lesson searchable" data-search="ON DELETE RESTRICT CASCADE P2003 clé étrangère violée suppression refusée testé">
+          <div class="lesson-top"><h3>Que devient le parent quand on le supprime ?</h3><span class="tag amber">vérifié par test</span></div>
+          <p class="why"><strong>Pourquoi :</strong> c'est la question à se poser avant de supprimer une ligne qui a des enfants.</p>
+          <pre><code>-- SQL généré par Prisma
+CONSTRAINT "Task_projectId_fkey" FOREIGN KEY ("projectId")
+  REFERENCES "Project" ("id") ON DELETE RESTRICT ON UPDATE CASCADE</code></pre>
+          <div class="grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+            <div class="version"><strong>RESTRICT (le défaut)</strong><span>La suppression est <em>bloquée</em> si des enfants existent. Échoue bruyamment.</span></div>
+            <div class="version"><strong>CASCADE</strong><span>Les enfants sont supprimés <em>aussi</em>. Silencieux.</span></div>
+          </div>
+          <div class="callout warn"><strong>Test effectué :</strong> un projet avec 2 tâches, on tente de le supprimer.<br>Résultat : <code>REFUSEE, code P2003</code> — et les 2 tâches sont intactes.<br><strong>La base ne supprime PAS les tâches. Elle refuse la suppression.</strong></div>
+          <div class="callout"><strong>Pour TaskFlow, RESTRICT est le bon choix.</strong> Supprimer un projet ne doit jamais emporter les tâches de quelqu'un. Le jour où on voudra le supprimer, il faudra d'abord décider du sort de ses tâches — et c'est exactement la décision qu'on veut forcer. Pour obtenir <code>CASCADE</code>, il faut l'écrire : <code>@relation(..., onDelete: Cascade)</code>.</div>
+          <details><summary>Question de rappel</summary><p>Tu supprimes un projet qui a 3 tâches. Que fait la base avec le comportement par défaut, et quel code d'erreur Prisma renvoie-t-il ?</p></details>
+        </article>
+        <article class="lesson searchable" data-search="migration orpheline PRAGMA foreign_keys OFF RedefineTables recrée table donnée invalide survit">
+          <div class="lesson-top"><h3>La migration ne répare pas les données invalides</h3><span class="tag amber">contre-intuitif</span></div>
+          <p class="why"><strong>Pourquoi :</strong> on pourrait croire qu'ajouter une relation échouera s'il existe déjà des orphelines. C'est faux.</p>
+          <pre><code>-- SQL généré pour ajouter la relation
+PRAGMA defer_foreign_keys=ON;
+PRAGMA foreign_keys=OFF;          -- la contrainte est DÉSACTIVÉE
+CREATE TABLE "new_Task" (... CONSTRAINT "Task_projectId_fkey" ...);
+INSERT INTO "new_Task" (...) SELECT ... FROM "Task";   -- copie SANS vérifier
+DROP TABLE "Task";
+ALTER TABLE "new_Task" RENAME TO "Task";
+PRAGMA foreign_keys=ON;</code></pre>
+          <div class="callout"><strong>Pourquoi :</strong> SQLite ne peut pas modifier une table en place. Prisma la <em>recrée</em> entièrement — et pendant cette reconstruction, les clés étrangères sont coupées, donc les orphelines sont copiées sans contrôle.</div>
+          <div class="callout"><strong>Mesuré :</strong> après la migration, l'orpheline était toujours en base, mais une <em>nouvelle</em> orpheline était refusée. La contrainte existe (<code>PRAGMA foreign_keys = 1</code>) et s'applique aux écritures suivantes.</div>
+          <p><strong>Leçon :</strong> déclarer une relation ne répare pas les données déjà invalides. Elle empêche seulement d'en créer de nouvelles. Une base héritée avec des orphelines doit être nettoyée à la main.</p>
+        </article>
+        <article class="lesson searchable" data-search="P2003 P2025 tableau codes erreur try catch statut HTTP 400 404 500">
+          <div class="lesson-top"><h3>Les codes d'erreur Prisma à connaître</h3><span class="tag green">validé</span></div>
+          <div class="versions" aria-label="Codes d'erreur Prisma">
+            <div class="version"><strong>P2025</strong><span>Enregistrement requis introuvable. Arrive sur <code>update</code> et <code>delete</code> quand la ligne n'existe pas. → HTTP 404</span></div>
+            <div class="version"><strong>P2003</strong><span>Contrainte de clé étrangère violée. Arrive sur <code>create</code> quand le parent n'existe pas. → HTTP 400</span></div>
+          </div>
+          <div class="callout warn"><strong>La règle absolue du <code>catch</code> :</strong> toujours terminer par <code>throw error;</code>. Sans lui, tu transformes n'importe quel bug inconnu (faute de frappe dans un nom de champ, base injoignable…) en erreur muette, et tu passes des heures à chercher.</div>
+          <div class="callout"><strong>Pourquoi tester <code>instanceof</code> avant de lire <code>.code</code> :</strong> toutes les erreurs n'ont pas de <code>.code</code>. Sur une <code>TypeError</code>, lire <code>.code</code> renvoie <code>undefined</code> — pas un plantage, donc le test passe « à travers » silencieusement.</div>
+          <pre><code>} catch (error) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+    response.status(400).json({ error: "contrainte de clé étrangère" });
+    return;
+  }
+  throw error;   // ← obligatoire
+}</code></pre>
+        </article>
+      </section>
+
+      <section class="section-card searchable" id="select" data-search="select choisir champs include passwordHash fuite liste blanche project select imbriqué performance">
+        <div class="section-head">
+          <div class="section-number">18</div>
+          <div>
+            <h2>Choisir les champs renvoyés</h2>
+            <p class="section-sub"><code>include</code> prend tout. <code>select</code> prend ce que tu listes.</p>
+          </div>
+        </div>
+        <article class="lesson searchable" data-search="include prend toute la relation passwordHash fuite hash attaque hors ligne testé">
+          <div class="lesson-top"><h3>Le danger d'<code>include</code></h3><span class="tag amber">vérifié par test</span></div>
+          <p class="why"><strong>Pourquoi :</strong> <code>include</code> renvoie la relation <em>entière</em>. Avec un <code>include</code> imbriqué, on a obtenu ceci :</p>
+          <pre><code>{
+  "project": {
+    "owner": {
+      "id": "dda8e6e5-...",
+      "name": "Alice",
+      "email": "alice@x.com",
+      "passwordHash": "$2b$10$HASHSUPERSECRET"   ← ← ←
+    }
+  }
+}</code></pre>
+          <div class="callout warn"><strong>Pas de faille sophistiquée :</strong> une seule ligne de code bien innocente, écrite pour « renvoyer les infos utiles ». Le hash ne permet pas de retrouver le mot de passe directement, mais il permet de l'<strong>attaquer hors ligne</strong> — l'attaquant le récupère une fois, puis teste des millions de candidats chez lui, à sa vitesse, sans que le serveur le voie.</div>
+        </article>
+        <article class="lesson searchable" data-search="select liste blanche champs true project select imbriqué ownerId exclu sécurité performance">
+          <div class="lesson-top"><h3><code>select</code> : la liste blanche</h3><span class="tag green">validé</span></div>
+          <pre><code>const task = await prisma.task.findUnique({
+  where: { id: request.params.id },
+  select: {
+    id: true,
+    title: true,
+    status: true,
+    project: {
+      select: {
+        id: true,
+        name: true,      // ownerId exclu
+      },
+    },
+  },
+});</code></pre>
+          <ul>
+            <li><strong><code>select</code> remplace tout l'objet d'options.</strong> On n'écrit plus <code>include</code>.</li>
+            <li><strong>Chaque champ voulu s'écrit <code>true</code>.</strong> Ce qui n'est pas listé n'arrive pas.</li>
+            <li><strong>Pour une relation, on imbrique un <code>select</code> dans le <code>select</code>.</strong> Écrire <code>project: true</code> à l'intérieur d'un <code>select</code> reprendrait <em>toute</em> la relation, <code>ownerId</code> compris.</li>
+          </ul>
+          <div class="callout"><strong>Deux bénéfices d'un coup :</strong> la <strong>sécurité</strong> — on ne peut pas fuiter un champ qu'on n'a pas listé, car le défaut est « rien » et non « tout » ; et la <strong>performance</strong> — la base ne transporte que les colonnes servies.</div>
+          <div class="callout"><strong>Le réflexe :</strong> avant d'écrire <code>include</code>, se demander « de quoi le client a-t-il besoin ? » et le lister. Ne jamais renvoyer un objet base de données brut.</div>
+          <details><summary>Question de rappel</summary><p>Dans un <code>select</code>, tu écris <code>project: true</code>. Qu'arrive-t-il, et pourquoi faut-il imbriquer un second <code>select</code> ?</p></details>
+        </article>
+        <article class="lesson searchable" data-search="réponse incohérente data enveloppe POST PATCH DELETE contrat client format">
+          <div class="lesson-top"><h3>Une API est un contrat</h3><span class="tag amber">à corriger</span></div>
+          <p class="why"><strong>Pourquoi :</strong> aujourd'hui, <code>GET</code> renvoie <code>{"data": ...}</code> alors que <code>POST</code> et <code>DELETE</code> renvoient la tâche directement. Trois routes, deux formats.</p>
+          <div class="callout warn"><strong>Conséquence :</strong> le client qui consomme l'API ne lit pas le code source, il lit la documentation. Il doit écrire <code>const task = response.data ?? response;</code> — c'est-à-dire <em>deviner</em> la forme. Chaque consommateur devine différemment, et le jour où un format change sans le vouloir, ça casse chez eux sans que rien ne casse chez soi.</div>
+          <p><strong>La règle :</strong> une seule forme de réponse pour toute l'API. On uniformisera tout en <code>{"data": ...}</code>, et on généralisera le <code>{"error": "..."}</code> avec une gestion d'erreurs typée.</p>
+        </article>
       </section>
 
       <section class="section-card searchable" id="prochaines" data-search="prochaines étapes POST JSON body middleware express.json Zod Prisma">
@@ -873,14 +1037,13 @@ if (!databaseUrl) { throw new Error("…") }   // !databaseUrl vaut toujours fal
           </div>
         </div>
         <ul>
-          <li><strong>Semaine 3, en cours :</strong> réécrire <code>GET /tasks/:id</code>, <code>POST /tasks</code>, <code>PATCH /tasks/:id</code> et <code>DELETE /tasks/:id</code> avec Prisma, puis supprimer le vieux code en mémoire.</li>
-          <li><strong>Semaine 3, à venir :</strong> les relations — un projet appartient à un utilisateur, une tâche appartient à un projet. C’est là que les types avancés deviennent nécessaires.</li>
-          <li><strong>Semaine 4 :</strong> authentification et validation — JWT, middlewares d’auth, Zod pour les données qui entrent par HTTP, gestion d’erreurs typée.</li>
-          <li><strong>Semaine 5 :</strong> équipes, rôles et permissions — relations many-to-many.</li>
+          <li><strong>Semaine 4 (prochaine) :</strong> authentification et validation — JWT, middlewares d’auth, Zod pour les données qui entrent par HTTP, gestion d’erreurs typée.</li>
+          <li><strong>Semaine 5 (reste) :</strong> équipes, rôles et permissions — relations many-to-many.</li>
           <li><strong>Semaine 6 :</strong> tests avec Vitest, documentation de l’API, Docker et déploiement.</li>
         </ul>
-        <div class="callout"><strong>État de TaskFlow :</strong> le schéma Prisma décrit <code>User</code>, <code>Project</code> et <code>Task</code> ; la première migration est créée ; le client est branché sur SQLite dans <code>src/db.ts</code> ; <code>GET /tasks</code> lit depuis la base. Les autres routes sont encore à migrer.</div>
-        <div class="callout"><strong>Rituel de révision :</strong> ouvre une section au hasard, lis une question de rappel, réponds sans regarder le code, puis vérifie. Les sections « Pièges rencontrés » sont les plus utiles à relire.</div>
+        <div class="callout"><strong>État de TaskFlow :</strong> les 5 routes (<code>GET /tasks</code>, <code>GET /tasks/:id</code>, <code>POST</code>, <code>PATCH</code>, <code>DELETE</code>) lisent et écrivent dans SQLite via Prisma ; les trois modèles sont reliés par des clés étrangères ; <code>select</code> filtre les champs renvoyés sur <code>GET /tasks/:id</code>, <code>POST</code> et <code>PATCH</code> ; les erreurs P2025 et P2003 sont attrapées.</div>
+        <div class="callout"><strong>Rituel de révision :</strong> ouvre une section au hasard, lis une question de rappel, réponds sans regarder le code, puis vérifie. Les sections « Pièges rencontrés » et « Les relations » sont les plus utiles à relire.</div>
+        <div class="callout"><strong>Aller une notion à la fois.</strong> Le carnet est fait pour être relu, pas pour être parcouru d’un coup. Si une section reste floue après deux lectures, on la reprend seule avant d’en ouvrir une autre.</div>
       </section>
     </main>
   </div>
