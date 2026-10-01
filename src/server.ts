@@ -19,8 +19,11 @@ app.get("/tasks", async (_request, response) =>{
 });
 
 app.get("/tasks/:id", async (request, response) =>{
+
+
     const foundTask = await prisma.task.findUnique({
-        where: {id: request.params.id}
+        where: {id: request.params.id},
+        include: {project: true}
     });
     if (!foundTask) {
         response.status(404).json({error: "Taches introuvables"});
@@ -31,7 +34,8 @@ app.get("/tasks/:id", async (request, response) =>{
 /* Créé une tâche avec prisma */
 
 app.post("/tasks", async (request, response) => {
-    const createTask = await prisma.task.create({
+    try {
+        const createTask = await prisma.task.create({
         data : {
             title: request.body.title,
             status: request.body.status,
@@ -39,6 +43,21 @@ app.post("/tasks", async (request, response) => {
         }
     });
     response.status(201).json(createTask)
+        
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+            response.status(404).json({error: "Enregistrement requis introuvable"})
+            return ;
+            
+        }
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+            response.status(400).json({error: "contrainte de clé étrangère"})
+            return;
+        }
+        throw error;
+    }
+
+    
 })
 
 // /*créé une tâche*/
