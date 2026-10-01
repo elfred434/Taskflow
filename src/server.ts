@@ -17,6 +17,17 @@ app.get("/tasks", async (_request, response) =>{
     response.json({data: tasks});
 });
 
+app.get("/tasks/:id", async (request, response) =>{
+    const foundTask = await prisma.task.findUnique({
+        where: {id: request.params.id}
+    });
+    if (!foundTask) {
+        response.status(404).json({error: "Taches introuvables"})
+        
+    }
+    response.json({data: foundTask})
+})
+
 app.listen(3000, () => {
      console.log("TaskFlow écoute sur le port 3000")
  })
